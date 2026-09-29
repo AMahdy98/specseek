@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+
+# Secrets / local config
+.env
+
+# Standards PDFs: licensing decided per document (see docs/DECISIONS.md).
+# Default is to keep them out of git; un-ignore a file explicitly only if its licence allows redistribution.
+data/*.pdf
+
+# Eval raw outputs can be large; commit the graded summary in docs/EVAL.md instead
+eval/runs/
+
+# Editors / OS
+.vscode/
+.idea/
+*:Zone.Identifier
