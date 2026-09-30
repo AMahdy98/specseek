@@ -122,6 +122,12 @@ Auth, multi-user, rerankers, hybrid/BM25 search, conversation memory, streaming 
   Provider: Google Gemini free tier recommended (gemini-embedding-001 at 768 dims, called via raw httpx), awaiting API key.
   Corpus: NASA-STD-8739.8B + NPR 7150.2D proposed as public corpus (awaiting confirmation); CiA 301/402 local-only; IEC 62304 excluded (see DECISIONS.md).
   **Next:** Phase 1 (Docker + Postgres/pgvector).
+- **2026-09-30, session 2:** Phase 1a done: Docker Engine in WSL, Compose (pgvector/pgvector:pg16 + api),
+  multi-stage Dockerfile (262 MB), schema applied at startup (documents, chunks, vector(768), HNSW),
+  async pool, `/v1` prefix, `/v1/health` 200/503, graceful shutdown verified. 10 tests green.
+  User has a Gemini key; `.env` not yet created from `.env.example` (key never shared with Claude). Corpus confirmed: NASA-STD-8739.8B + NPR 7150.2D public;
+  CiA 301/402 (+ user's ISO/IEC copies) local-only in `data/local/`.
+  **Next:** Phase 1b: exception hierarchy + one handler, structured JSON logs with request ID; then explain-back + 5-question drill.
 
 ## First session
 1. Save this brief to `CLAUDE.md`.
