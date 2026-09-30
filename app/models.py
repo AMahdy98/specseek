@@ -10,13 +10,14 @@ from pydantic import BaseModel, Field
 
 
 class HealthResponse(BaseModel):
-    """Body of GET /health. Phase 1 adds a `database` field."""
+    """Body of GET /v1/health."""
 
-    status: Literal["ok"]
+    status: Literal["ok", "degraded"]
+    database: Literal["ok", "unavailable"]
 
 
 class DocumentSummary(BaseModel):
-    """One row of GET /documents."""
+    """One row of GET /v1/documents."""
 
     id: str
     title: str = Field(min_length=1)

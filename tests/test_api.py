@@ -1,34 +1,35 @@
-"""Phase 0 API and model tests."""
+"""API and model unit tests. No database: dependencies are overridden."""
 
-import httpx
 import pytest
 from pydantic import ValidationError
 
-from app.main import app
 from app.models import DocumentSummary
 from app.repository import InMemoryDocumentRepository
 
 
-async def test_lifespan_wires_real_repository():
-    # ASGITransport doesn't run the lifespan, so enter it by hand. This covers the real
-    # path with no overrides: lifespan -> app.state.repo -> get_repository -> route.
-    async with app.router.lifespan_context(app):
-        transport = httpx.ASGITransport(app=app)
-        async with httpx.AsyncClient(transport=transport, base_url="http://test") as c:
-            resp = await c.get("/documents")
+async def test_health_ok(client, db_up):
+    db_up(True)
+    resp = await client.get("/v1/health")
     assert resp.status_code == 200
-    assert resp.json() == []
+    assert resp.json() == {"status": "ok", "database": "ok"}
 
 
-async def test_health_ok(client):
+async def test_health_db_down_returns_503(client, db_up):
+    db_up(False)
+    resp = await client.get("/v1/health")
+    assert resp.status_code == 503
+    assert resp.json() == {"status": "degraded", "database": "unavailable"}
+
+
+async def test_unversioned_path_is_404(client, db_up):
+    db_up(True)
     resp = await client.get("/health")
-    assert resp.status_code == 200
-    assert resp.json() == {"status": "ok"}
+    assert resp.status_code == 404
 
 
 async def test_documents_empty(client, use_repo):
     use_repo([])
-    resp = await client.get("/documents")
+    resp = await client.get("/v1/documents")
     assert resp.status_code == 200
     assert resp.json() == []
 
@@ -40,7 +41,7 @@ async def test_documents_lists_seeded(client, use_repo):
             DocumentSummary(id="doc-b", title="Doc B", chunk_count=0),
         ]
     )
-    resp = await client.get("/documents")
+    resp = await client.get("/v1/documents")
     assert resp.status_code == 200
     assert resp.json() == [
         {"id": "doc-a", "title": "Doc A", "chunk_count": 3},
