@@ -30,5 +30,14 @@ Format: **Decision** / Alternative rejected / Why. Only choices actually made go
   IEC does not publish it for free.
 - **Rejected:** committing whatever PDFs are at hand. **Why:** copyright; the repo is public.
 
+## 2026-09-30: Frontend data fetching with TanStack Query (phase 5)
+- **Rejected:** plain `fetch` + `useEffect` (the original plan).
+- **Why:** interview coverage of server vs client state, caching, retries, stale-while-revalidate;
+  it also removes hand-written loading/error/cancellation boilerplate.
+
+## 2026-09-30: All routes under `/v1` (retrofit at the start of phase 1)
+- **Rejected:** unversioned paths. **Why:** a breaking change can ship as `/v2` without breaking
+  existing clients; URL versioning is the most visible and cache-friendly option.
+
 ## Future work (explicitly out of scope)
 - _(nothing yet)_
