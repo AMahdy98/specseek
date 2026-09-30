@@ -38,14 +38,17 @@ My time: ~2–3 h on weekdays, a full day on weekends. Hard stop for the backend
 - Embeddings and LLM behind a small provider interface (`embed(texts) -> list[vector]`, `generate(prompt) -> str`), so the provider is swappable. Default: whichever provider I have keys for (ask me). Use one embedding model only and note its dimension in DECISIONS.md.
 - HTTP client: `httpx.AsyncClient` (never `requests` inside async code)
 - Tests: `pytest`, `pytest-asyncio`, FastAPI test client via httpx
-- Frontend (phase 5): React + TypeScript + Vite, no framework, plain fetch
+- Frontend (phase 5): React + TypeScript + Vite, no framework, **TanStack Query** for data fetching (replaced plain fetch, 2026-09-30)
 - Deploy (phase 6): Docker → GCP Artifact Registry → Cloud Run, config via env vars, API key via Secret Manager
 
 ## Architecture
-- `POST /ingest`: accepts a PDF (or a path to one in `data/`), parses, chunks, embeds, stores
-- `POST /query`: body `{question, document_id?}`; embeds the question, top-5 cosine search (optional filter by document), builds a grounded prompt, returns `{answer, citations: [{clause_id, heading, document, snippet, score}]}`
-- `GET /documents`: lists ingested docs with chunk counts
-- `GET /health`: liveness + DB connectivity
+All endpoints are mounted under `/v1` (API versioning).
+- `POST /v1/ingest`: accepts a PDF (or a path to one in `data/`), parses, chunks, embeds, stores. **Idempotent** via SHA-256 content hash: re-ingesting the same file returns the existing document.
+- `POST /v1/query`: body `{question, document_id?}`; embeds the question, top-5 cosine search (optional filter by document), builds a grounded prompt, returns `{answer, citations: [{clause_id, heading, document, snippet, score}]}`
+- `GET /v1/documents`: lists ingested docs with chunk counts; **cursor** pagination; ETag / `If-None-Match` → 304 (optional)
+- `GET /v1/health`: liveness + DB connectivity
+- Errors: custom hierarchy `SpecSeekError` → `NotFound`, `IngestError`, `ProviderError`, … mapped to HTTP responses in one exception handler.
+- Observability: structured JSON logs, a request ID per request, timing per stage (embed / search / generate).
 
 Chunking has **two strategies**, both kept in code because the eval compares them:
 - `naive`: fixed ~512-character windows, no structure
@@ -59,7 +62,7 @@ specseek/
   app/  main.py  config.py  db.py  models.py
         ingest/ (parser.py, chunkers.py)  retrieval.py  llm.py  api/
   tests/  data/ (PDFs, gitignored if licensing requires)  eval/ (questions.yaml, run_eval.py)
-  docs/  (DECISIONS.md, BUGS.md, EVAL.md)
+  docs/  (DECISIONS.md, BUGS.md, EVAL.md, TOPICS.md, INTERVIEW.md, PERF.md)
   frontend/  Dockerfile  docker-compose.yml  README.md  CLAUDE.md
 ```
 
@@ -72,19 +75,46 @@ specseek/
 - `docs/EVAL.md` records per-strategy scores, and each remaining failure with its category (table split, vocabulary mismatch, near-duplicate chunks, hallucination, etc.) and what I'd change.
 
 ## Phases (each ends with a working, committed state)
-0. **Skeleton + FastAPI/asyncio fundamentals**: project setup, `/health`, `/documents` against an in-memory list, Pydantic models, dependency injection, one pytest. Teach: ASGI/Starlette/uvicorn request lifecycle, async vs blocking, `run_in_executor` for CPU work.
-1. **Docker + Postgres/pgvector**: Dockerfile (layer caching, why requirements are copied before source, multi-stage), Compose with the API and Postgres, schema with a vector column + index, `/health` checks the DB.
-2. **Ingestion**: PDF parsing, both chunkers, embeddings, storage. Unit tests for the chunkers (clause IDs preserved, nothing lost, overlap correct). Teach: what an embedding is geometrically, cosine similarity, why chunking strategy dominates RAG quality.
-3. **Retrieval + generation**: top-k search, grounded prompt, citations in the response, `/query` endpoint + one API test with the LLM mocked. Teach: the main RAG failure modes.
-4. **Eval**: write questions, run both strategies, grade, fill in EVAL.md.
-5. **React UI**: question box, answer, citation list. Teach: components, `useState`, `useEffect`, fetching, CORS.
-6. **Cloud Run deploy**: public URL, env vars, secret. Decide Cloud SQL vs another hosted Postgres with me and note the cost.
-7. **README**: architecture diagram (Mermaid), setup steps a stranger can follow, eval summary.
+Every phase also ends with: update `docs/TOPICS.md` and `docs/INTERVIEW.md`, and a 5-question drill on the topics built in that phase.
+[ADD] = interview-driven addition. **P** = priority (build first if time runs short); **opt** = optional.
+
+0. **Skeleton + FastAPI/asyncio fundamentals** (done): project setup, `/health`, `/documents` against an in-memory list, Pydantic models, dependency injection, pytest. Teach: ASGI/Starlette/uvicorn request lifecycle, async vs blocking, `run_in_executor` for CPU work.
+1. **Docker + Postgres/pgvector**: Dockerfile (layer caching, why requirements are copied before source, multi-stage), Compose with the API and Postgres, schema with a vector column + index, `/health` checks the DB. Plus:
+   - [ADD] Retrofit all routes under `/v1` (API versioning: URL vs header vs media type, retiring a version)
+   - [ADD] Schema: UUID primary keys (v4 vs v7), unique `content_hash` column, B-tree indexes on `document_id` / `content_hash`
+   - [ADD, P] Custom exception hierarchy + one exception handler (validation layers: API / service / data)
+   - [ADD, P] Structured JSON logs with a request ID per request
+   - [ADD] Graceful shutdown: lifespan opens/closes the DB pool; SIGTERM + draining in-flight requests
+   - Raw parameterized SQL via psycopg (SQL injection: safe vs unsafe version; ORM vs raw SQL)
+   - Teach: containers vs VMs, Docker vs Compose, relational vs non-relational / ACID
+2. **Ingestion**: PDF parsing, both chunkers, embeddings, storage. Chunkers written **test-first (TDD)**: clause IDs preserved, nothing lost, overlap correct. PDF parsing + chunking run off the event loop (`run_in_executor`). Teach: what an embedding is geometrically, cosine similarity, why chunking strategy dominates RAG quality. Plus:
+   - [ADD, P] Idempotent `POST /v1/ingest` via SHA-256 content hash (idempotent verbs, idempotency keys, 201 vs 200 on replay)
+   - [ADD] `GET /v1/documents` from Postgres: written the naive N+1 way first, then fixed with one JOIN/GROUP BY
+   - [ADD, P] Cursor pagination on `GET /v1/documents` (cursor vs offset)
+   - [ADD, opt] ETag + `If-None-Match` → 304 on `GET /v1/documents`
+   - `EXPLAIN ANALYZE` on real queries; vector index is approximate (junior depth)
+3. **Retrieval + generation**: top-k search, grounded prompt, citations in the response, `/v1/query` endpoint + one API test with the LLM mocked. Teach: the main RAG failure modes, pgvector vs dedicated vector DBs. Plus:
+   - [ADD, P] Per-stage timing in logs (embed / search / generate)
+   - Error trace: LLM timeout → `ProviderError` → HTTP response (continued in the UI in phase 5)
+   - [ADD, opt] In-memory token-bucket rate limiter on `/v1/query` (vs fixed/sliding window, multi-instance problem, fair queuing)
+   - [ADD, opt] LLM response cache keyed by normalized question + doc set + prompt version, invalidated on re-ingest
+   - Whiteboard drill after this phase
+4. **Eval**: write questions, run both strategies, grade, fill in EVAL.md. Plus:
+   - [ADD, P] Async load script measuring p50/p95 of `/v1/query` → `docs/PERF.md`; walk the "debug a slow endpoint" checklist on real data
+5. **React UI**: question box, answer, citation list. Teach: components, `useState`, `useEffect`, CORS (preflight; what it does *not* protect against). Plus:
+   - [CHANGE] TanStack Query instead of plain fetch (server vs client state, caching, retries with backoff, stale-while-revalidate)
+   - State management comparison (Context / `useReducer` / Redux / TanStack Query); hooks (`useEffect` vs `useLayoutEffect`, cleanup, `useMemo`/`useCallback` with measurement)
+   - Rendering experiments with React DevTools Profiler (StrictMode, re-renders, `key`); lazy loading, skeletons, Fragments
+   - XSS-safe rendering of LLM output (no `dangerouslySetInnerHTML`); LLM-timeout error shown in the UI
+   - JS/TS fundamentals exercises (`let`/`const`/`var`, closures / stale closure, `this`, JS event loop vs asyncio)
+6. **Cloud Run deploy**: public URL, env vars, secret. Decide Cloud SQL vs another hosted Postgres with me and note the cost. Teach: scaling to zero, cold starts, request timeouts, SIGTERM on Cloud Run. Plus:
+   - [ADD, opt] Cloud Storage: PDFs go to a GCS bucket (ephemeral filesystem); signed-URL upload vs upload through the API. Backend only — still no upload UI.
+7. **README**: architecture diagram (Mermaid), setup steps a stranger can follow, eval summary. Finalize `docs/INTERVIEW.md`; final whiteboard drill.
 
 Stretch (only if everything above is done): a retrieval relevance floor, so if the best score is below a threshold the model isn't called at all.
 
 ## Do NOT build
-Auth, multi-user, rerankers, hybrid/BM25 search, conversation memory, streaming responses (that's the next project), an upload UI, any eval framework beyond the hand-written set, fine-tuning, Kubernetes, LangChain/LlamaIndex (I'm writing the pipeline myself to understand it).
+Auth, multi-user, rerankers, hybrid/BM25 search, conversation memory, streaming responses (that's the next project), an upload UI, any eval framework beyond the hand-written set, fine-tuning, Kubernetes, LangChain/LlamaIndex (I'm writing the pipeline myself to understand it), Next.js, a message queue, GraphQL (these stay study-only, see "Interview-driven learning" C).
 
 ## Current status (update at the end of every session)
 - **2026-09-29, session 1:** Phase 0 done (`/health`, `/documents` on an in-memory repo, 7 tests green).
@@ -97,3 +127,102 @@ Auth, multi-user, rerankers, hybrid/BM25 search, conversation memory, streaming 
 1. Save this brief to `CLAUDE.md`.
 2. Ask me, in one message: whether Docker (and which setup), uv, Node and gcloud are already installed in WSL; which LLM/embedding API keys I have; which standards PDFs I already have access to. Then verify with commands (`docker --version`, `uv --version`, `node -v`, `which python3`) instead of taking my word for it.
 3. Then start Phase 0 with the concept briefing, and give me the first skeleton to fill in.
+
+## Interview-driven learning
+
+### Goal
+I'm preparing for Fullstack + AI engineer interviews. Besides building SpecSeek, I have to:
+(a) learn the interview topics below through the project wherever possible, and
+(b) be able to describe SpecSeek in full detail **without code access**: architecture, request flow, numbers, decisions, bugs, trade-offs, and 3 levels of follow-ups.
+
+### Teaching rules for interview topics
+1. When we build something that maps to an interview topic, say so explicitly: "Interview topic: Idempotency." Give a ≤6-bullet explanation of the general concept, then show exactly how it appears in our code.
+2. For each topic, teach in this order: **what problem it solves → how it works → how we did it in SpecSeek → the trade-off / when you'd pick the alternative**. Interviewers mostly probe the last one.
+3. **Explain-back before show:** for anything I built, ask me to explain it first, then correct me. Don't pre-empt with the answer.
+4. Where my C++/real-time background maps onto a topic (event loop ≈ epoll, SSE ≈ non-blocking IPC, graceful shutdown ≈ safe state transitions, latency budgets ≈ FDA test criteria), point it out. These are my strongest interview answers.
+5. Keep `docs/TOPICS.md`: one row per topic below, with status `built` / `studied` / `drilled` (drilled = I answered it correctly out loud in a mock) and a one-line pointer (file/function or doc section).
+
+### Topic map
+
+#### A. Built in SpecSeek
+Backend / API
+- RESTful resource design, correct verbs and status codes (201/202/404/409/422), PUT vs PATCH (explain even though we use neither yet) → our 4 endpoints
+- API versioning [ADD]: mount everything under `/v1`; explain URL vs header vs media-type versioning, and when a version is retired
+- Idempotency [ADD]: `POST /ingest` is idempotent via a SHA-256 content hash of the PDF. Re-ingesting the same file returns the existing document, not duplicates. Explain naturally idempotent verbs, idempotency keys, and why "everything is POST" loses caching + idempotency
+- Pagination [ADD]: `GET /v1/documents` uses **cursor** pagination; explain cursor vs offset and why offset breaks under inserts
+- ETags / HTTP caching [ADD]: ETag + `If-None-Match` → 304 on `GET /v1/documents`
+- Validation layers: Pydantic at the edge; custom exception hierarchy [ADD] (`SpecSeekError` → `NotFound`, `IngestError`, `ProviderError`, …) mapped to HTTP responses in one exception handler. Explain which layer (API / service / data) validates and handles what
+- Error handling, backend vs frontend: the same failure (LLM timeout) traced from provider → service → API → React UI message
+- Parameterized queries, SQL injection: show why our psycopg queries are safe and what the unsafe version looks like
+- CORS: we need it for Vite → API; explain the preflight and what CORS does *not* protect against (XSS, CSRF)
+- Rate limiting [ADD, small]: an in-memory token bucket on `/v1/query` (LLM calls cost money). Explain token bucket vs fixed/sliding window, why in-memory breaks with multiple Cloud Run instances, and fair queuing for "one user sends 1000 req/min without starving others"
+- LLM response cache [ADD, optional]: cache `/v1/query` answers keyed by normalized question + doc set + prompt version; explain invalidation on re-ingest
+- Observability [ADD]: structured JSON logs with a request ID per request, and timing per stage (embed / search / generate)
+- Performance [ADD]: a small async load script measuring p50/p95 latency of `/v1/query`, recorded in `docs/PERF.md`. Use it to walk the "debug a slow endpoint" checklist on our real data (network, DB, index, third-party LLM, caching)
+- Graceful shutdown [ADD]: FastAPI lifespan opens and closes the DB pool; explain SIGTERM on Cloud Run and draining in-flight requests
+- Event loop / asyncio: blocking vs non-blocking, `run_in_executor` for PDF parsing and chunking (CPU-bound)
+- TDD: the chunkers are written test-first (the tests exist before the implementation)
+
+Database
+- Relational vs non-relational: why Postgres here, ACID, what Firestore (next project) trades away
+- Indexes: B-tree on `document_id` / content hash, the vector index on embeddings (junior depth only: what it is and why it's approximate), `EXPLAIN ANALYZE` on our real queries
+- N+1: `GET /documents` with chunk counts, written the naive way first so I can see it, then fixed with one JOIN/GROUP BY. This doubles as the "write a 2-table join" SQL question
+- ID design: explain our choice of UUID (v4 vs v7) and how you'd guarantee uniqueness across services and DBs
+- ORM vs raw SQL: we use raw parameterized SQL; explain ORM pros and cons and what I'd pick for a larger codebase
+
+DevOps / Cloud
+- Containers vs VMs, Dockerfile layers, Docker vs Docker Compose
+- Cloud Run: containers, env vars, secrets, scaling to zero, cold starts, request timeouts
+- Cloud Storage [ADD, phase 6]: Cloud Run's filesystem is ephemeral, so uploaded PDFs go to a GCS bucket. Explain signed-URL uploads vs uploading through the API
+- Kubernetes and IaC: study only. When K8s is worth it vs Cloud Run, and what Terraform would manage for SpecSeek
+
+AI
+- RAG end to end: embeddings, cosine similarity, chunking trade-offs, top-k, grounding, refusal, failure modes, eval
+- Vector database choice: pgvector vs dedicated vector DBs
+
+Frontend (phase 5)
+- [CHANGE] Use **TanStack Query** for data fetching instead of plain fetch. Teach: server state vs client state, caching, retries with backoff, stale-while-revalidate
+- State management: `useState` for UI state; explain Context vs `useReducer` vs Redux/RTK vs TanStack Query and when each fits. Show where Redux would be overkill here
+- Hooks: `useEffect` vs `useLayoutEffect`, dependency arrays, cleanup on unmount (cancelling an in-flight query), `useMemo` / `useCallback` with a real measurement, not a guess
+- Rendering: run small experiments in our UI with React DevTools Profiler and `console.log` in components (StrictMode double render, re-renders on prop change, `key` and reconciliation). Explain render → reconcile → commit → paint
+- Lazy loading and skeletons for the answer panel; Fragments
+- Sanitization / XSS: the answer text comes from an LLM, so render it safely. Explain why we never inject it with `dangerouslySetInnerHTML`
+- JS/TS fundamentals via small exercises in our frontend code: `let` / `const` / `var`, closures (the stale closure in `useEffect`), `this`, the JS event loop (compare with asyncio)
+
+#### B. Covered later in TriageBot (note only, don't build now)
+SSE and server interfaces (REST / gRPC / GraphQL / WebSocket / SSE comparison), event-driven architecture, MCP, agent patterns, Firestore/Firebase, message queues (enqueue agent runs → worker), dropped-connection resume. When a SpecSeek topic connects to these, add a note under "Carry over to TriageBot" in `docs/TOPICS.md`.
+
+#### C. Study only (never build; 20–30 min sessions tied to SpecSeek)
+For each topic, explain it and then answer: "if SpecSeek needed this, what would change and where?"
+- SSR vs CSR vs SSG vs hybrid, how SSR serializes, hydration mismatches, React vs Next.js
+- Design systems: tokens, Tailwind config overrides, atoms / molecules / organisms, CVA, micro-frontends / module federation
+- AuthN vs AuthZ: JWT, sessions, OAuth2/OIDC, SSO; RBAC / ReBAC / ABAC; Keycloak, OpenFGA. Scenario: "add per-team document access to SpecSeek"
+- CSRF and other web attacks beyond the ones we built for
+- Message queues: Pub/Sub, SQS, RabbitMQ, Kafka (throughput, ack deadlines, dead-letter / redrive). Scenario: "make ingestion async for 500-page PDFs"
+- GraphQL vs REST, gRPC
+- DDD, SOLID, and the design patterns actually present in our code (the provider interface = strategy / dependency inversion)
+- Agent protocol landscape: ADK, A2A, AG-UI, A2UI. Know what each is for at one-paragraph depth, and verify current details with a web search, since these change fast
+- Deployment strategies: blue/green, canary, feature flags, and how you'd safely roll out a prompt or model change
+
+### Being able to explain it without code
+Maintain `docs/INTERVIEW.md` and update it at the end of every phase. It's my offline study guide and must be accurate to the actual code. It contains:
+1. **90-second walkthrough** (spoken style, no jargon dump), revised as the project grows
+2. **Architecture diagram** (Mermaid) plus a version I can draw on a whiteboard in 5 boxes
+3. **Request traces:** `/v1/query` and `/v1/ingest` step by step, naming the module/function at each step and what can fail there
+4. **Numbers to know cold:** chunk size/overlap, embedding model + dimension, top-k, corpus size (docs, pages, chunks), eval scores for both strategies, p50/p95 latency, cost per query (rough), Docker image size
+5. **Decisions:** each with the rejected alternative and a one-line why (pulled from DECISIONS.md)
+6. **Bugs:** the 3 best stories from BUGS.md in STAR form (situation, what I saw, root cause, fix)
+7. **Known limitations and what I'd do next.** Honest, and volunteered before an interviewer finds them
+8. **Follow-up ladders:** for each major component, the likely question, the follow-up, and the follow-up to that, with my answers
+
+### Drills
+- **End of each phase:** 5 questions from the topic map for things we built in that phase, asked one at a time. I answer from memory; you grade (correct / partial / wrong), fix gaps, and update TOPICS.md.
+- **Mock interview mode.** When I type "mock interview", act as a senior interviewer on a Fullstack AI team. Rules:
+  - Ask one question at a time and drill down at least 3 levels on each answer.
+  - Mix project questions, category A and C topics, and one bridge question ("why move from robotics to AI?").
+  - Don't help me mid-answer.
+  - At the end, give a scorecard with weak spots and add them to the next session's drills.
+- **Whiteboard drill** (after phase 3 and again at the end): I describe the architecture and the query path from memory in chat; you compare it against INTERVIEW.md and list what I missed or got wrong.
+
+### Scope guard
+Items marked [ADD] are small (≤1–2 h each). Order of priority if time runs short: idempotency, cursor pagination, exception hierarchy, structured logging, p50/p95 measurement come first. Rate limiter, ETag, LLM cache, GCS upload are optional. Never add auth, Kubernetes, Next.js, a message queue or GraphQL to SpecSeek. Those stay in category C.
