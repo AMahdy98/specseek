@@ -1,0 +1,36 @@
+# Local development stack: Postgres 16 + pgvector, and the API.
+#   docker compose up -d db          # just the database (run the API with uv for --reload)
+#   docker compose up --build        # both, API at http://localhost:8000
+
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      # Local dev credentials only. Cloud Run uses Secret Manager (phase 6).
+      POSTGRES_USER: specseek
+      POSTGRES_PASSWORD: specseek
+      POSTGRES_DB: specseek
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U specseek -d specseek"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+
+  api:
+    build: .
+    environment:
+      # "db" is the service name above; Compose's internal DNS resolves it to the container.
+      DATABASE_URL: postgresql://specseek:specseek@db:5432/specseek
+      LOG_LEVEL: info
+    ports:
+      - "8000:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:

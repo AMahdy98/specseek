@@ -8,9 +8,11 @@ __pycache__/
 # Secrets / local config
 .env
 
-# Standards PDFs: licensing decided per document (see docs/DECISIONS.md).
-# Default is to keep them out of git; un-ignore a file explicitly only if its licence allows redistribution.
-data/*.pdf
+# Standards PDFs (see docs/DECISIONS.md, "Corpus licensing policy").
+# data/local/  = licensed docs (CiA, ISO/IEC): never committed, never deployed.
+# data/public/ = public-domain docs; still ignored until we decide in phase 2 whether to commit them.
+data/local/
+data/**/*.pdf
 
 # Eval raw outputs can be large; commit the graded summary in docs/EVAL.md instead
 eval/runs/
