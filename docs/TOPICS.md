@@ -65,3 +65,9 @@ Partial means some of the topic exists; the pointer says which part.
   blocking in `async def`: partial (right cause and fixes, wrong wait time: 20 s, not 8 s);
   missing `await`: partial (missed "500 at request time via response validation");
   422 vs 500: partial (didn't separate invalid input → 422 from invalid output → 500).
+- 2026-10-01, Phase 1a explain-back:
+  `db` vs `localhost`: partial (missed: published port 5432 makes `localhost` work from WSL;
+  inside a container `localhost` is the container itself);
+  SIGTERM + `exec`: partial (missed: uvicorn drains in-flight requests + lifespan closes pool;
+  without `exec`, `sh` is PID 1 and doesn't forward SIGTERM → SIGKILL after 10 s → exit 137);
+  deps copied before source: correct (add: a changed layer invalidates every layer after it).
