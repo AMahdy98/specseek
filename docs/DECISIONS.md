@@ -108,5 +108,56 @@ Format: **Decision** / Alternative rejected / Why. Only choices actually made go
 - An incoming `X-Request-ID` is reused only if it matches `^[A-Za-z0-9_-]{1,64}$` (it is written to
   our logs, so unvalidated input would allow log injection); otherwise we generate a UUID.
 
+## 2026-10-02: Public corpus = 4 US-government documents (225 pages)
+- NASA-STD-8739.8B (70 p), NPR 7150.2D (89 p), FDA "Content of Premarket Submissions for Device
+  Software Functions" 2023 (46 p, downloaded from fda.gov/media/153781), FDA "Off-The-Shelf
+  Software Use in Medical Devices" 2023 (20 p). US federal works: no copyright restriction.
+- FDA guidance added because it is my professional domain (eval questions from real experience)
+  and it uses a different numbering scheme (I. / A. / 1.), which stresses the chunker.
+- `data/local/` (CiA 301, CiA DSP 402, vendor manuals, IEC 62304 copies): local experiments only.
+  The IEC 62304 PDF carries another organisation's licence watermark; not used for anything public.
+
+## 2026-10-02: Parser output is "lines with a bold flag", cleaned in three steps
+- Evidence (surveyed the corpus before designing): a naive "number + text" heading pattern matched
+  475 lines in NASA-STD-8739.8B, almost all list items inside tables; NASA-STD stores a clause
+  number and its text as separate lines on one row; FDA headings differ from list items only by
+  being bold.
+- So `parse_pdf` (1) keeps a `bold` flag per line, (2) drops lines in the top/bottom 10% of the page
+  that repeat on >50% of pages (digits normalised, so "7 of 70" matches "8 of 70"), (3) joins a
+  marker-only line ("4.4.2.9", "I.", a bullet) with the text on the same row (within 3 pt).
+- **Rejected:** `page.get_text()` plain text (loses bold and row position). **Rejected:**
+  `pymupdf4llm` / `unstructured` (new dependencies, and I couldn't explain their heuristics).
+  **Rejected:** PDF bookmarks as the heading source (two of four documents have none).
+
+## 2026-10-02: Heading rules for `section_aware`
+- **Decimal clause numbers** (`3.1.2`, `C.1`, `P.3`) start a clause on any line, bold or not,
+  because in standards the numbered *paragraph* is the citable unit. Guards: ≥2 components, each
+  ≤2 digits (rejects "7150.2"), followed by an uppercase letter or digit (rejects wrapped
+  references like "3.7.1 of this document").
+- **Outline markers** (`IV.`, `A.`, `1.`, `(1)`, `Appendix A`, `Chapter 3`) count only on bold
+  lines, and build hierarchical IDs (`IV.B.1`). `I.`/`V.`/`X.` are letters only right after the
+  previous letter of the alphabet.
+- Heading-only sections produce no chunk; their title lives on as `parent_heading` of the
+  sub-clauses. Contents-page entries are merged into the preceding text.
+- **Rejected:** merging small neighbouring clauses up to the size limit: it would blur clause IDs,
+  and exact citations are the point of this strategy.
+
+## 2026-10-02: Chunk sizes: naive 512 chars; section-aware ≤3200 chars with 400 overlap
+- "800 tokens / 100 overlap" is implemented as characters with 1 token ≈ 4 chars.
+  **Rejected:** a real tokenizer (`tiktoken` is OpenAI's vocabulary, not Gemini's; Gemini's
+  `countTokens` is a network call per chunk). The limit only needs to stay safely under the
+  embedding model's input limit, so an approximation is enough.
+- Oversized clauses are split recursively: by line, then sentence, then word, then a hard cut;
+  each later piece is prefixed with the tail (≤400 chars, word-aligned) of the previous one.
+- Naive has no overlap: it is the deliberately structure-blind baseline.
+
+## 2026-10-02: Known chunking limitations (kept for the eval to measure, not fixed blind)
+- FDA Premarket guidance: the subsection letters `A.`–`J.` are not in the PDF's text layer, so
+  everything under section VI is cited as `VI` (or `VI.1`…), not `VI.C`.
+- Table cells are read in the PDF's own order; a row is not reconstructed as a row.
+- Contents pages remain as unlabelled (or `Chapter N`-labelled) chunks: retrieval noise.
+- A clause ID is not unique in a document: NPR 7150.2D repeats each requirement in its Appendix C
+  matrix, and NASA-STD Table 1 uses NPR section numbers that collide with its own (`3.1`, `3.2`).
+
 ## Future work (explicitly out of scope)
 - _(nothing yet)_

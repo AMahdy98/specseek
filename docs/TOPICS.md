@@ -23,7 +23,7 @@ Partial means some of the topic exists; the pointer says which part.
 | Graceful shutdown / lifespan | 1 | built | `app/main.py:lifespan`, Dockerfile `exec` CMD; verified exit code 0 on `docker compose stop` |
 | Event loop / asyncio, `run_in_executor` | 0, 2 | built (partial: async endpoints; no executor use yet) | `app/api/routes.py` |
 | Dependency injection | 0 | built | `app/repository.py:get_repository`, `tests/conftest.py:use_repo` |
-| TDD (chunkers test-first) | 2 | — | |
+| TDD (chunkers test-first) | 2 | built | `tests/test_chunkers.py` (23 tests red against stubs before `app/ingest/chunkers.py` was written) |
 | Relational vs non-relational, ACID | 1 | — | |
 | Indexes (B-tree, vector index, EXPLAIN ANALYZE) | 1, 2 | built (partial: indexes exist, no EXPLAIN yet) | `app/schema.sql` |
 | N+1 → JOIN/GROUP BY | 2 | — | |
@@ -33,7 +33,7 @@ Partial means some of the topic exists; the pointer says which part.
 | Cloud Run (scale to zero, cold starts, timeouts, SIGTERM) | 6 | — | |
 | Cloud Storage / signed URLs (opt) | 6 | — | |
 | Kubernetes & IaC (study only) | 6 | — | |
-| RAG end to end | 2–4 | — | |
+| RAG end to end | 2–4 | built (partial: parsing + both chunkers; no embeddings yet) | `app/ingest/parser.py`, `app/ingest/chunkers.py` |
 | Vector DB choice (pgvector vs dedicated) | 3 | — | |
 | TanStack Query, server vs client state | 5 | — | |
 | State management comparison | 5 | — | |

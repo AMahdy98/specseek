@@ -133,7 +133,13 @@ Auth, multi-user, rerankers, hybrid/BM25 search, conversation memory, streaming 
   access log, last-resort 500), `app/logging_config.py` (JSON logs, uvicorn routed through it). 20 tests green, image 274 MB.
   `.env` exists. Phase 1 drill done: 3 correct, 1 partial, 1 wrong (see TOPICS.md drill log).
   Re-drill at the start of next session: why domain errors are HTTP-agnostic + 4xx vs 5xx families.
-  **Next:** Phase 2 (ingestion). User must place PDFs in `data/public/` and `data/local/` first.
+  **Next:** Phase 2 (ingestion).
+- **2026-10-02, session 3 (cont.):** Phase 2a done: `app/ingest/` (types, parser, chunkers), 58 tests green.
+  Public corpus fixed: NASA-STD-8739.8B, NPR-7150.2D, FDA Premarket Software Guidance 2023, FDA Off-The-Shelf Software
+  Guidance 2023 (in `data/public/`, 225 pages → 956 naive / 640 section-aware chunks). Two real bugs logged in BUGS.md.
+  Still open: decide whether to commit the public PDFs to git; phase-1 re-drill (domain errors vs HTTP, 4xx vs 5xx).
+  **Next:** Phase 2b: Gemini embedding provider (raw httpx, 768 dims), storage, idempotent `POST /v1/ingest`
+  (parse/chunk via `asyncio.to_thread`); then 2c: `/v1/documents` from Postgres (N+1 → JOIN, cursor pagination). User must place PDFs in `data/public/` and `data/local/` first.
 
 ## First session
 1. Save this brief to `CLAUDE.md`.

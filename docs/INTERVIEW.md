@@ -1,6 +1,6 @@
 # SpecSeek: interview study guide
 
-Accurate to the code as of **Phase 1** (Docker + Postgres, error handling, structured logging). Sections fill in as phases land; nothing here describes
+Accurate to the code as of **Phase 2a** (Phase 1 + PDF parsing and both chunkers; nothing is embedded or stored yet). Sections fill in as phases land; nothing here describes
 unbuilt features as if they exist.
 
 ## 1. 90-second walkthrough
@@ -47,12 +47,14 @@ Every request, before and after the route (`app/api/middleware.py:RequestContext
 ## 4. Numbers to know cold
 | Number | Value |
 |---|---|
-| Tests | 20 (18 unit, 2 integration against real Postgres) |
-| Chunk size / overlap | not built yet |
+| Tests | 58 (56 unit, 2 integration against real Postgres) |
+| Chunk size / overlap | naive: 512 chars, no overlap. section_aware: one chunk per clause, max 3200 chars (≈800 tokens at 4 chars/token), 400-char overlap when a clause is split |
 | Embedding model + dimension | Gemini `gemini-embedding-001` @ 768 (chosen; not wired yet) |
 | DB pool | min 1 / max 10 connections, 2 s acquire timeout for health |
 | Top-k | 5 (planned) |
-| Corpus size | not ingested yet |
+| Corpus size | 4 public documents, 225 pages → 956 naive chunks, 640 section-aware chunks (measured 2026-10-02 by running the chunkers; not yet in the DB) |
+| Per document (pages → naive / section-aware) | NASA-STD-8739.8B: 70 → 281 / 209 · NPR 7150.2D: 89 → 354 / 341 · FDA Premarket: 46 → 219 / 49 · FDA Off-The-Shelf: 20 → 102 / 41 |
+| Parse time | 134–357 ms per document on my machine; chunking under 4 ms |
 | Eval scores | not measured |
 | p50 / p95 latency | not measured |
 | Cost per query | not measured |
@@ -67,10 +69,17 @@ See `DECISIONS.md`. Short form so far:
 - Licensed PDFs never committed or served publicly → copyright.
 
 ## 6. Bugs (STAR)
-_(None yet. Only real bugs from BUGS.md go here.)_
+**The glued heading (2026-10-02).**
+- *Situation:* the section-aware chunker passed all 23 unit tests.
+- *What I saw:* on the real FDA guidance, 66% of the text had no clause ID; only `VII` and the appendices were detected.
+- *Root cause:* the PDF stores `III. Scope` as three spans (`III.`, a space, `Scope`). My parser dropped whitespace-only spans before joining, producing `III.Scope`, which no heading rule matches.
+- *Fix:* join all spans for text; ignore whitespace-only spans only for the bold check. Added a regression test. Lesson: unit tests on hand-built input can't catch a parser/PDF interaction; an aggregate check on real data (% of text without a clause ID) did.
+
+**Contents entries as clauses (2026-10-02).** 75 of NPR 7150.2D's 391 chunks were one-line contents entries like `P.1 Purpose`. Fixed by treating a title-like one-liner whose ID reappears later as contents text. Full write-up in BUGS.md.
 
 ## 7. Known limitations
-- Documents not persisted yet (phase 2). Schema can only be created, not migrated.
+- Documents not persisted yet (phase 2b). Schema can only be created, not migrated.
+- Chunking: FDA Premarket subsection letters aren't in the PDF text, so section VI is cited coarsely; table rows aren't reconstructed; contents pages remain as noise chunks; clause IDs can repeat within a document (see DECISIONS.md).
 - No real route raises a domain error yet; the hierarchy is exercised only by tests until phase 2.
 - Base image tag `python:3.12-slim` is floating, so image builds aren't byte-reproducible.
 - Integration tests share the dev database (no separate test DB).
