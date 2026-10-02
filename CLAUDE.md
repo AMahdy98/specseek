@@ -131,8 +131,9 @@ Auth, multi-user, rerankers, hybrid/BM25 search, conversation memory, streaming 
 - **2026-10-02, session 3:** Phase 1b done: `app/errors.py` (HTTP-agnostic hierarchy), `app/api/error_handlers.py`
   (one status map, one error envelope incl. 422/404/405), `app/api/middleware.py` (pure-ASGI: request ID ContextVar,
   access log, last-resort 500), `app/logging_config.py` (JSON logs, uvicorn routed through it). 20 tests green, image 274 MB.
-  `.env` exists. Phase 1 5-question drill in progress (asked one at a time; results go in TOPICS.md).
-  **Next:** finish the Phase 1 drill, then Phase 2 (ingestion). User must place PDFs in `data/public/` and `data/local/` first.
+  `.env` exists. Phase 1 drill done: 3 correct, 1 partial, 1 wrong (see TOPICS.md drill log).
+  Re-drill at the start of next session: why domain errors are HTTP-agnostic + 4xx vs 5xx families.
+  **Next:** Phase 2 (ingestion). User must place PDFs in `data/public/` and `data/local/` first.
 
 ## First session
 1. Save this brief to `CLAUDE.md`.

@@ -71,3 +71,21 @@ Partial means some of the topic exists; the pointer says which part.
   SIGTERM + `exec`: partial (missed: uvicorn drains in-flight requests + lifespan closes pool;
   without `exec`, `sh` is PID 1 and doesn't forward SIGTERM → SIGKILL after 10 s → exit 137);
   deps copied before source: correct (add: a changed layer invalidates every layer after it).
+- 2026-10-02, Phase 1 drill (5 questions, one at a time):
+  1. Finding one user's failed request in the logs: correct (request ID + time; add: where the user
+     finds the ID, what the log lines show, and the fallback when they have no ID).
+  2. Composite index / leftmost prefix: correct (add: the planner also skips a *usable* index on a
+     small table or when the query returns a large share of the rows; `EXPLAIN ANALYZE` shows it).
+  3. Crash mid-ingest / atomicity: correct on outcome and property; partial on mechanism (missed:
+     it only holds if all inserts share ONE transaction; no COMMIT → Postgres rolls back when the
+     connection drops; in autocommit mode 150 chunks would remain).
+  4. Why `NotFound` instead of `HTTPException(404)`: wrong (said 404 is a server error that we hide
+     from the client; actually 4xx = client error and the client DOES get a 404. Real reason: the
+     service layer stays HTTP-agnostic; the status is decided in `error_handlers._STATUS_BY_ERROR`).
+     Confused with the unhandled-exception case, where internals are hidden behind a generic 500.
+     → Re-drill next session.
+  5. Pool size × instances vs DB connection limit: partial (right arithmetic, 200 > 100, and two valid
+     fixes: raise the limit, shrink each pool; missed the symptom: Postgres refuses connections with
+     "too many connections", so instances fail at startup or requests time out waiting for the pool;
+     and the standard fixes: cap max instances, put a pooler such as PgBouncer in front).
+  Score: 3 correct, 1 partial, 1 wrong. Re-drill: Q4 (domain errors vs HTTP), status-code families.
