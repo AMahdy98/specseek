@@ -12,13 +12,13 @@ Partial means some of the topic exists; the pointer says which part.
 | Idempotency (SHA-256 content hash on ingest) | 2 | — | |
 | Cursor pagination | 2 | — | |
 | ETags / HTTP caching (opt) | 2 | — | |
-| Validation layers + exception hierarchy | 1 | built (partial: Pydantic at the edge only) | `app/models.py` |
+| Validation layers + exception hierarchy | 1 | built (hierarchy + handlers; first real `raise` comes in phase 2) | `app/errors.py`, `app/api/error_handlers.py` |
 | Error handling backend → frontend (LLM timeout) | 3, 5 | — | |
 | Parameterized queries / SQL injection | 1 | built (partial: advisory-lock query only) | `app/db.py:apply_schema` |
 | CORS | 5 | — | |
 | Rate limiting, token bucket (opt) | 3 | — | |
 | LLM response cache (opt) | 3 | — | |
-| Observability: JSON logs, request ID, stage timing | 1, 3 | — | |
+| Observability: JSON logs, request ID, stage timing | 1, 3 | built (partial: logs + request ID + per-request duration; stage timing in phase 3) | `app/logging_config.py`, `app/api/middleware.py` |
 | Performance: p50/p95, slow-endpoint checklist | 4 | — | `docs/PERF.md` |
 | Graceful shutdown / lifespan | 1 | built | `app/main.py:lifespan`, Dockerfile `exec` CMD; verified exit code 0 on `docker compose stop` |
 | Event loop / asyncio, `run_in_executor` | 0, 2 | built (partial: async endpoints; no executor use yet) | `app/api/routes.py` |

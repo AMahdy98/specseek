@@ -128,6 +128,11 @@ Auth, multi-user, rerankers, hybrid/BM25 search, conversation memory, streaming 
   User has a Gemini key; `.env` not yet created from `.env.example` (key never shared with Claude). Corpus confirmed: NASA-STD-8739.8B + NPR 7150.2D public;
   CiA 301/402 (+ user's ISO/IEC copies) local-only in `data/local/`.
   **Next:** Phase 1b: exception hierarchy + one handler, structured JSON logs with request ID; then explain-back + 5-question drill.
+- **2026-10-02, session 3:** Phase 1b done: `app/errors.py` (HTTP-agnostic hierarchy), `app/api/error_handlers.py`
+  (one status map, one error envelope incl. 422/404/405), `app/api/middleware.py` (pure-ASGI: request ID ContextVar,
+  access log, last-resort 500), `app/logging_config.py` (JSON logs, uvicorn routed through it). 20 tests green, image 274 MB.
+  `.env` exists. Phase 1 5-question drill in progress (asked one at a time; results go in TOPICS.md).
+  **Next:** finish the Phase 1 drill, then Phase 2 (ingestion). User must place PDFs in `data/public/` and `data/local/` first.
 
 ## First session
 1. Save this brief to `CLAUDE.md`.

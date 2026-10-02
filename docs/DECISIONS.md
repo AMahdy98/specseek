@@ -81,5 +81,32 @@ Format: **Decision** / Alternative rejected / Why. Only choices actually made go
 - `CMD ["sh", "-c", "exec uvicorn ..."]` so uvicorn is PID 1 and gets SIGTERM (needed for `$PORT`
   expansion on Cloud Run). **Rejected:** shell-form CMD — `sh` would be PID 1 and swallow SIGTERM.
 
+## 2026-10-02: Domain exceptions are HTTP-agnostic; status codes mapped in one handler
+- `app/errors.py` classes carry only a `code` and a message. `app/api/error_handlers.py` owns the
+  table `NotFound→404, IngestError→422, ProviderError→502, SpecSeekError→500`.
+- **Rejected:** a `status_code` attribute on each exception, or raising `HTTPException` from
+  service code. **Why:** the same service code must be callable from non-HTTP callers
+  (`eval/run_eval.py`, tests); only the API layer should know HTTP.
+
+## 2026-10-02: One error envelope for every non-2xx response
+- `{"error": {"code", "message", "request_id", "details?"}}` for domain errors, validation errors
+  (422), framework errors (404/405) and unhandled exceptions (500).
+- **Rejected:** FastAPI's defaults (`{"detail": ...}` with three different shapes).
+  **Why:** the frontend gets one error-parsing path, and every error carries the request ID.
+- Unhandled exceptions return a generic message; the stack trace goes to the log only.
+
+## 2026-10-02: Structured logs with stdlib `logging` + a small JSON formatter
+- **Rejected:** `structlog` / `python-json-logger` — not in the stack; ~40 lines of formatter do it.
+- Field name `severity` (not `level`) because Cloud Logging parses it from JSON on stdout.
+- uvicorn's access log is disabled; our middleware writes one line per request with
+  `request_id`, `method`, `path`, `status`, `duration_ms`.
+
+## 2026-10-02: Request ID in a ContextVar, set by a pure-ASGI middleware
+- **Rejected:** Starlette `BaseHTTPMiddleware` — it runs the route in a separate task, so context
+  set in the middleware isn't reliably visible downstream. **Rejected:** passing `request_id` as a
+  parameter through every function.
+- An incoming `X-Request-ID` is reused only if it matches `^[A-Za-z0-9_-]{1,64}$` (it is written to
+  our logs, so unvalidated input would allow log injection); otherwise we generate a UUID.
+
 ## Future work (explicitly out of scope)
 - _(nothing yet)_
