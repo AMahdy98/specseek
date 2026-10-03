@@ -523,6 +523,7 @@ version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "fastapi" },
+    { name = "httpx" },
     { name = "pgvector" },
     { name = "psycopg", extra = ["binary", "pool"] },
     { name = "pymupdf" },
@@ -531,7 +532,6 @@ dependencies = [
 
 [package.dev-dependencies]
 dev = [
-    { name = "httpx" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
     { name = "ruff" },
@@ -540,6 +540,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "fastapi", specifier = ">=0.142.0" },
+    { name = "httpx", specifier = ">=0.28.1" },
     { name = "pgvector", specifier = ">=0.5.0" },
     { name = "psycopg", extras = ["binary", "pool"], specifier = ">=3.3.6" },
     { name = "pymupdf", specifier = ">=1.28.2" },
@@ -548,7 +549,6 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "httpx", specifier = ">=0.28.1" },
     { name = "pytest", specifier = ">=9.1.1" },
     { name = "pytest-asyncio", specifier = ">=1.4.0" },
     { name = "ruff", specifier = ">=0.16.9" },
