@@ -97,3 +97,12 @@ Partial means some of the topic exists; the pointer says which part.
   3. Green tests, 66% without clause ID: partial (missed the cause: the tests fed hand-built lines
      straight to the chunker, bypassing the parser where the bug was; and what caught it: an
      aggregate statistic on real documents, not a per-heading comparison).
+- 2026-10-03, Phase 2 check questions:
+  1. Two simultaneous ingests of one new PDF: partial (right outcome, wrong mechanism: there is no
+     mutex in our code. Both miss the pre-check and both embed; the UNIQUE index makes the second
+     INSERT wait for the first transaction, then DO NOTHING; the loser returns the winner's document
+     with 200. Cost: the embedding is paid twice).
+  2. LEFT JOIN + COUNT(c.id): partial (missed COUNT(*) vs COUNT(c.id): with LEFT JOIN a document
+     with no chunks becomes one row of NULLs, so COUNT(*) would say 1; COUNT(c.id) skips NULLs → 0.
+     A plain JOIN would drop that document entirely).
+  3. Re-drill, domain error vs HTTPException: correct (was wrong on 2026-10-02).
