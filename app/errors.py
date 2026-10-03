@@ -20,6 +20,12 @@ class NotFound(SpecSeekError):
     code = "not_found"
 
 
+class InvalidCursor(SpecSeekError):
+    """The client sent a pagination cursor we did not issue (or tampered with one)."""
+
+    code = "invalid_cursor"
+
+
 class IngestError(SpecSeekError):
     """The submitted file can't be ingested (not a PDF, no extractable text, ...)."""
 

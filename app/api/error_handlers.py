@@ -12,7 +12,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from app.errors import IngestError, NotFound, ProviderError, SpecSeekError
+from app.errors import IngestError, InvalidCursor, NotFound, ProviderError, SpecSeekError
 from app.logging_config import request_id_var
 
 logger = logging.getLogger("specseek.errors")
@@ -21,6 +21,7 @@ logger = logging.getLogger("specseek.errors")
 # without its own entry inherits its parent's status.
 _STATUS_BY_ERROR: dict[type[SpecSeekError], int] = {
     NotFound: 404,
+    InvalidCursor: 422,
     IngestError: 422,  # the client's file is the problem
     ProviderError: 502,  # an upstream service we depend on failed ("Bad Gateway")
     SpecSeekError: 500,
