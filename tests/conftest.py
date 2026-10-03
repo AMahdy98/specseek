@@ -1,14 +1,29 @@
-from collections.abc import AsyncIterator, Callable
+"""Shared fixtures.
 
-import httpx
-import psycopg
-import pytest
+Environment is set at the very top, before anything imports `app`: tests must use their own
+database and must never be able to call the real embedding provider.
+"""
 
-from app.api.routes import database_is_up
-from app.config import get_settings
-from app.main import app
-from app.models import DocumentSummary
-from app.repository import InMemoryDocumentRepository, get_repository
+import os
+
+_DEV_DATABASE_URL = os.environ.get(
+    "DATABASE_URL", "postgresql://specseek:specseek@localhost:5432/specseek"
+)
+TEST_DATABASE_URL = _DEV_DATABASE_URL.rsplit("/", 1)[0] + "/specseek_test"
+os.environ["DATABASE_URL"] = TEST_DATABASE_URL
+os.environ["GEMINI_API_KEY"] = ""
+
+from collections.abc import AsyncIterator, Callable  # noqa: E402
+
+import httpx  # noqa: E402
+import psycopg  # noqa: E402
+import pytest  # noqa: E402
+
+from app.api.routes import database_is_up  # noqa: E402
+from app.db import apply_schema  # noqa: E402
+from app.main import app  # noqa: E402
+from app.models import DocumentPage, DocumentSummary  # noqa: E402
+from app.repository import get_repository  # noqa: E402
 
 
 @pytest.fixture
@@ -24,12 +39,24 @@ async def client() -> AsyncIterator[httpx.AsyncClient]:
     app.dependency_overrides.clear()  # don't leak overrides into the next test
 
 
-@pytest.fixture
-def use_repo() -> Callable[[list[DocumentSummary]], InMemoryDocumentRepository]:
-    """Swap the real repository dependency for one seeded with the given documents."""
+class FakeDocumentRepository:
+    """Test double for the DocumentRepository Protocol: no database, records its calls."""
 
-    def _use(documents: list[DocumentSummary]) -> InMemoryDocumentRepository:
-        repo = InMemoryDocumentRepository(documents)
+    def __init__(self, documents: list[DocumentSummary]) -> None:
+        self.documents = list(documents)
+        self.calls: list[tuple[int, str | None]] = []
+
+    async def list_documents(self, limit: int, cursor: str | None) -> DocumentPage:
+        self.calls.append((limit, cursor))
+        return DocumentPage(items=self.documents[:limit], next_cursor=None)
+
+
+@pytest.fixture
+def use_repo() -> Callable[[list[DocumentSummary]], FakeDocumentRepository]:
+    """Swap the real repository dependency for a fake seeded with the given documents."""
+
+    def _use(documents: list[DocumentSummary]) -> FakeDocumentRepository:
+        repo = FakeDocumentRepository(documents)
         app.dependency_overrides[get_repository] = lambda: repo
         return repo
 
@@ -48,14 +75,24 @@ def db_up() -> Callable[[bool], None]:
 
 @pytest.fixture
 async def database_url() -> str:
-    """Integration tests only: skip (not fail) when no Postgres is reachable.
+    """Integration tests only: an empty `specseek_test` database with the schema applied.
 
-    Start one with `docker compose up -d db`.
+    Skips (does not fail) when no Postgres is reachable; start one with
+    `docker compose up -d db`. The dev database `specseek` is never touched.
     """
-    url = get_settings().database_url
     try:
-        conn = await psycopg.AsyncConnection.connect(url, connect_timeout=2)
+        admin = await psycopg.AsyncConnection.connect(
+            _DEV_DATABASE_URL, connect_timeout=2, autocommit=True
+        )
     except psycopg.OperationalError:
         pytest.skip("Postgres not reachable; run `docker compose up -d db`")
-    await conn.close()
-    return url
+    async with admin:
+        exists = await admin.execute("SELECT 1 FROM pg_database WHERE datname = 'specseek_test'")
+        if await exists.fetchone() is None:
+            # CREATE DATABASE cannot run inside a transaction, hence autocommit above.
+            await admin.execute("CREATE DATABASE specseek_test")
+
+    await apply_schema(TEST_DATABASE_URL)
+    async with await psycopg.AsyncConnection.connect(TEST_DATABASE_URL) as conn:
+        await conn.execute("TRUNCATE documents CASCADE")  # CASCADE also empties chunks
+    return TEST_DATABASE_URL

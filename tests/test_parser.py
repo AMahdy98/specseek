@@ -1,30 +1,11 @@
 """Parser tests. Each builds a tiny PDF in a temp folder, so no corpus file is needed."""
 
-from pathlib import Path
-
-import pymupdf
 import pytest
 
 from app.errors import IngestError
 from app.ingest.parser import _line_text, parse_pdf
-
-REGULAR, BOLD = "helv", "hebo"  # built-in Helvetica / Helvetica-Bold
-
-
-def _make_pdf(
-    path: Path, pages: list[list[tuple[float, float, str, str]]], title: str = ""
-) -> Path:
-    """pages[i] = list of (x, y, text, fontname) to draw on page i."""
-    doc = pymupdf.open()
-    for items in pages:
-        page = doc.new_page(width=612, height=792)
-        for x, y, text, font in items:
-            page.insert_text((x, y), text, fontname=font, fontsize=12)
-    if title:
-        doc.set_metadata({"title": title})
-    doc.save(path)
-    doc.close()
-    return path
+from tests.pdf_factory import BOLD, REGULAR
+from tests.pdf_factory import make_pdf as _make_pdf
 
 
 def test_extracts_lines_with_page_numbers_and_bold_flag(tmp_path):

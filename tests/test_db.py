@@ -29,4 +29,4 @@ async def test_lifespan_opens_pool_and_health_sees_db(database_url):
             docs = await c.get("/v1/documents")
     assert health.status_code == 200
     assert health.json() == {"status": "ok", "database": "ok"}
-    assert docs.json() == []
+    assert docs.json() == {"items": [], "next_cursor": None}
