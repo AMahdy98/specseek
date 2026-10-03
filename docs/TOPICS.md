@@ -7,33 +7,33 @@ Partial means some of the topic exists; the pointer says which part.
 
 | Topic | Phase | Status | Pointer |
 |---|---|---|---|
-| RESTful design, verbs, status codes, PUT vs PATCH | 0–3 | built (partial: 2 GETs) | `app/api/routes.py` |
+| RESTful design, verbs, status codes, PUT vs PATCH | 0–3 | built (partial: 2 GETs + POST with 201/200/404/422/502) | `app/api/routes.py` |
 | API versioning (`/v1`) | 1 | built | `app/main.py` (`include_router(prefix="/v1")`) |
-| Idempotency (SHA-256 content hash on ingest) | 2 | — | |
-| Cursor pagination | 2 | — | |
-| ETags / HTTP caching (opt) | 2 | — | |
-| Validation layers + exception hierarchy | 1 | built (hierarchy + handlers; first real `raise` comes in phase 2) | `app/errors.py`, `app/api/error_handlers.py` |
-| Error handling backend → frontend (LLM timeout) | 3, 5 | — | |
-| Parameterized queries / SQL injection | 1 | built (partial: advisory-lock query only) | `app/db.py:apply_schema` |
+| Idempotency (SHA-256 content hash on ingest) | 2 | built | `app/ingest/service.py:ingest_pdf`, `store.insert_document` (ON CONFLICT), `tests/test_ingest.py` |
+| Cursor pagination | 2 | built | `app/repository.py` (keyset on `created_at, id`), `tests/test_documents.py` (cursor vs OFFSET under inserts) |
+| ETags / HTTP caching (opt) | 2 | — (optional; skipped so far) | |
+| Validation layers + exception hierarchy | 1 | built | `app/errors.py`, `app/api/error_handlers.py`; raised by `parser.py`, `service.py` (path guard), `llm.py` |
+| Error handling backend → frontend (LLM timeout) | 3, 5 | built (partial: provider failure → `ProviderError` → 502 envelope; UI in phase 5) | `app/llm.py:_post`, `tests/test_ingest.py` |
+| Parameterized queries / SQL injection | 1 | built | `app/ingest/store.py` (every value is a `%s` parameter) |
 | CORS | 5 | — | |
 | Rate limiting, token bucket (opt) | 3 | — | |
 | LLM response cache (opt) | 3 | — | |
 | Observability: JSON logs, request ID, stage timing | 1, 3 | built (partial: logs + request ID + per-request duration; stage timing in phase 3) | `app/logging_config.py`, `app/api/middleware.py` |
 | Performance: p50/p95, slow-endpoint checklist | 4 | — | `docs/PERF.md` |
 | Graceful shutdown / lifespan | 1 | built | `app/main.py:lifespan`, Dockerfile `exec` CMD; verified exit code 0 on `docker compose stop` |
-| Event loop / asyncio, `run_in_executor` | 0, 2 | built (partial: async endpoints; no executor use yet) | `app/api/routes.py` |
-| Dependency injection | 0 | built | `app/repository.py:get_repository`, `tests/conftest.py:use_repo` |
+| Event loop / asyncio, `run_in_executor` | 0, 2 | built | `app/ingest/service.py`: hashing, parsing, chunking via `asyncio.to_thread` |
+| Dependency injection | 0 | built | `app/api/routes.py` (`get_pool`, `get_provider`, `get_repository`), fakes in `tests/conftest.py`, `tests/test_ingest.py` |
 | TDD (chunkers test-first) | 2 | built | `tests/test_chunkers.py` (23 tests red against stubs before `app/ingest/chunkers.py` was written) |
 | Relational vs non-relational, ACID | 1 | — | |
-| Indexes (B-tree, vector index, EXPLAIN ANALYZE) | 1, 2 | built (partial: indexes exist, no EXPLAIN yet) | `app/schema.sql` |
-| N+1 → JOIN/GROUP BY | 2 | — | |
+| Indexes (B-tree, vector index, EXPLAIN ANALYZE) | 1, 2 | built | `app/schema.sql`; measured plans in DECISIONS.md ("What EXPLAIN ANALYZE showed") |
+| N+1 → JOIN/GROUP BY | 2 | built | `app/repository.py:_SELECT`; `tests/test_documents.py:test_n_plus_one_versus_one_join` (11 queries vs 1) |
 | ID design (UUID v4 vs v7) | 1 | built | `app/schema.sql`, DECISIONS.md |
 | ORM vs raw SQL | 1 | — | |
 | Containers vs VMs, Dockerfile layers, Compose | 1 | built | `Dockerfile`, `docker-compose.yml` |
 | Cloud Run (scale to zero, cold starts, timeouts, SIGTERM) | 6 | — | |
 | Cloud Storage / signed URLs (opt) | 6 | — | |
 | Kubernetes & IaC (study only) | 6 | — | |
-| RAG end to end | 2–4 | built (partial: parsing + both chunkers; no embeddings yet) | `app/ingest/parser.py`, `app/ingest/chunkers.py` |
+| RAG end to end | 2–4 | built (partial: parse → chunk → embed → store; no retrieval yet) | `app/ingest/`, `app/llm.py` |
 | Vector DB choice (pgvector vs dedicated) | 3 | — | |
 | TanStack Query, server vs client state | 5 | — | |
 | State management comparison | 5 | — | |
@@ -89,3 +89,11 @@ Partial means some of the topic exists; the pointer says which part.
      "too many connections", so instances fail at startup or requests time out waiting for the pool;
      and the standard fixes: cap max instances, put a pooler such as PgBouncer in front).
   Score: 3 correct, 1 partial, 1 wrong. Re-drill: Q4 (domain errors vs HTTP), status-code families.
+- 2026-10-02, Phase 2a explain-back:
+  1. Decimal vs outline heading rules: correct (add the third guard: next char uppercase/digit;
+     and the reason: a multi-part number never looks like a list item, "A."/"1." always does).
+  2. Splitting a 5,000-char clause: partial (right idea and right purpose of overlap; wrong sizes:
+     the limit is 3,200 *including* overlap, so pieces are ≤2,800 → chunks of ~2,800 and ~2,600).
+  3. Green tests, 66% without clause ID: partial (missed the cause: the tests fed hand-built lines
+     straight to the chunker, bypassing the parser where the bug was; and what caught it: an
+     aggregate statistic on real documents, not a per-heading comparison).

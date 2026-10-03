@@ -1,6 +1,6 @@
 # SpecSeek: interview study guide
 
-Accurate to the code as of **Phase 2a** (Phase 1 + PDF parsing and both chunkers; nothing is embedded or stored yet). Sections fill in as phases land; nothing here describes
+Accurate to the code as of **Phase 2** (ingestion works end to end; 3 of 4 public documents are in the database, the fourth is waiting for the embedding quota to reset; no retrieval yet). Sections fill in as phases land; nothing here describes
 unbuilt features as if they exist.
 
 ## 1. 90-second walkthrough
@@ -37,19 +37,32 @@ Every request, before and after the route (`app/api/middleware.py:RequestContext
    middleware → stack trace logged, generic 500 envelope (no internals leaked).
 4. Always: one JSON access-log line with `request_id`, `method`, `path`, `status`, `duration_ms`.
 
-`GET /v1/documents` (still in-memory):
-1. uvicorn accepts the connection, parses HTTP, builds the ASGI `scope`.
-2. FastAPI matches the route → resolves `Depends(get_repository)` → reads `app.state.repo` (set in the lifespan).
-3. Handler `await`s `repo.list_documents()` → returns a copy of the list.
-4. FastAPI validates the result against `response_model=list[DocumentSummary]` → JSON.
-   Can fail: lifespan didn't run → `AttributeError` → 500; output doesn't match the model → 500.
+`POST /v1/ingest` with `{"path": "public/NPR-7150.2D.pdf"}`:
+1. `routes.ingest`: Pydantic validates the body (missing path → 422).
+2. `service.resolve_data_path`: the path must resolve inside `DATA_DIR`, be a `.pdf`, and exist. Fails: traversal or wrong type → `IngestError` → 422; missing → `NotFound` → 404.
+3. `service.ingest_pdf`: SHA-256 of the file, on a worker thread (`asyncio.to_thread`).
+4. `store.find_document_by_hash`: already ingested → **200**, `created: false`, stop. No parsing, no embedding.
+5. `parser.parse_pdf` + both chunkers, on a worker thread. Fails: not a PDF / no text layer → `IngestError` → 422.
+6. `GeminiProvider.embed`: batches of 100 over HTTPS, retries 429/5xx/timeouts with backoff. No DB connection is held here. Fails: retries exhausted, bad key, or quota asks for a long wait → `ProviderError` → 502.
+7. One transaction: `store.insert_document` (`ON CONFLICT (content_hash) DO NOTHING RETURNING id`) then `store.insert_chunks`. If no ID comes back, a concurrent request won: return its document with 200.
+8. **201**, `created: true`, chunk counts per strategy. One log line with `parse_ms`, `embed_ms`, `store_ms`.
+
+`GET /v1/documents?limit=20&cursor=...`:
+1. FastAPI validates `limit` (1–100) and `cursor` length → 422 otherwise.
+2. `PostgresDocumentRepository.list_documents`: decodes the cursor (bad cursor → `InvalidCursor` → 422), runs ONE query: `documents LEFT JOIN chunks ... GROUP BY ... ORDER BY created_at DESC, id DESC LIMIT limit+1`, with `WHERE (created_at, id) < (cursor)` when a cursor is given.
+3. Returns `{items, next_cursor}`; `next_cursor` is null on the last page.
 
 ## 4. Numbers to know cold
 | Number | Value |
 |---|---|
-| Tests | 58 (56 unit, 2 integration against real Postgres) |
+| Tests | 89 (76 unit, 13 integration against a real Postgres test database) |
 | Chunk size / overlap | naive: 512 chars, no overlap. section_aware: one chunk per clause, max 3200 chars (≈800 tokens at 4 chars/token), 400-char overlap when a clause is split |
-| Embedding model + dimension | Gemini `gemini-embedding-001` @ 768 (chosen; not wired yet) |
+| Embedding model + dimension | Gemini `gemini-embedding-001`, 768 dimensions (truncated from 3072), L2-normalised by us (raw norm measured 0.58) |
+| Embedding limits (free tier, measured) | 100 texts per request; about one batch per minute before HTTP 429; **1,000 texts per day per model** |
+| Ingest time (measured, free tier) | FDA Off-The-Shelf 143 chunks: 94 s · FDA Premarket 268: 142 s · NASA-STD 490: 272 s. Almost all of it is waiting out rate limits; parse 0.2–0.5 s, store 0.1–0.4 s |
+| Replay of an ingested file | 200 in 5 ms, no provider call |
+| In the database (2026-10-02) | 3 documents, 901 chunks (602 naive + 299 section-aware), 8.2 MB including indexes. NPR 7150.2D (695 chunks) pending quota reset |
+| Vector search (measured, 901 chunks) | top-5 via HNSW index 0.5 ms; exact scan 3.4 ms; filtered by strategy 1.6 ms (planner uses an exact scan) |
 | DB pool | min 1 / max 10 connections, 2 s acquire timeout for health |
 | Top-k | 5 (planned) |
 | Corpus size | 4 public documents, 225 pages → 956 naive chunks, 640 section-aware chunks (measured 2026-10-02 by running the chunkers; not yet in the DB) |
@@ -58,7 +71,7 @@ Every request, before and after the route (`app/api/middleware.py:RequestContext
 | Eval scores | not measured |
 | p50 / p95 latency | not measured |
 | Cost per query | not measured |
-| Docker image size | 274 MB (`docker image ls`, 2026-10-02; dependency layer 66.7 MB, app code 61 kB, rest is the python:3.12-slim base). Read 262 MB on 2026-09-30; cause of the difference not investigated |
+| Docker image size | 371 MB (`docker image ls`, 2026-10-02, after adding PyMuPDF and numpy via pgvector). Was 274 MB before the ingestion dependencies |
 
 ## 5. Decisions
 See `DECISIONS.md`. Short form so far:
@@ -75,14 +88,23 @@ See `DECISIONS.md`. Short form so far:
 - *Root cause:* the PDF stores `III. Scope` as three spans (`III.`, a space, `Scope`). My parser dropped whitespace-only spans before joining, producing `III.Scope`, which no heading rule matches.
 - *Fix:* join all spans for text; ignore whitespace-only spans only for the bold check. Added a regression test. Lesson: unit tests on hand-built input can't catch a parser/PDF interaction; an aggregate check on real data (% of text without a clause ID) did.
 
+**The quota that looked like a rate limit (2026-10-02).**
+- *Situation:* three documents ingested fine, each recovering from HTTP 429 after one wait.
+- *What I saw:* the fourth retried six times over five minutes and failed with 502, while a single hand-sent request succeeded.
+- *Root cause:* two limits share one status code. This 429 was the free tier's 1,000-texts-per-day quota, and its body said to retry in 16,464 s. My code clamped that to 60 s and kept retrying a request that could not succeed.
+- *Fix:* if the provider asks for a longer wait than our maximum backoff, fail immediately with the wait in the error message (now 0.8 s instead of 5 minutes). Because the write is one transaction after embedding, the failure left no partial data.
+
+**The dev-only dependency (2026-10-02).** All tests passed locally, but the container crashed on start: `httpx` had been installed as a dev dependency and the image is built without those. Full write-up in BUGS.md.
+
 **Contents entries as clauses (2026-10-02).** 75 of NPR 7150.2D's 391 chunks were one-line contents entries like `P.1 Purpose`. Fixed by treating a title-like one-liner whose ID reappears later as contents text. Full write-up in BUGS.md.
 
 ## 7. Known limitations
-- Documents not persisted yet (phase 2b). Schema can only be created, not migrated.
+- Schema can only be created, not migrated.
+- Ingest is synchronous: minutes per document on the free tier. The scalable design is 202 + queue + worker.
+- The whole corpus (1,596 texts) exceeds one day of free embedding quota, so a full re-ingest takes two days on the free tier.
+- A re-saved PDF with the same text has a different hash and would be ingested as a new document.
 - Chunking: FDA Premarket subsection letters aren't in the PDF text, so section VI is cited coarsely; table rows aren't reconstructed; contents pages remain as noise chunks; clause IDs can repeat within a document (see DECISIONS.md).
-- No real route raises a domain error yet; the hierarchy is exercised only by tests until phase 2.
 - Base image tag `python:3.12-slim` is floating, so image builds aren't byte-reproducible.
-- Integration tests share the dev database (no separate test DB).
 
 ## 8. Follow-up ladders
 **Async endpoints**

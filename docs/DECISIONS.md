@@ -159,5 +159,77 @@ Format: **Decision** / Alternative rejected / Why. Only choices actually made go
 - A clause ID is not unique in a document: NPR 7150.2D repeats each requirement in its Appendix C
   matrix, and NASA-STD Table 1 uses NPR section numbers that collide with its own (`3.1`, `3.2`).
 
+## 2026-10-02: Idempotent ingest keyed on the SHA-256 of the file's bytes
+- Flow: hash the file → look the hash up (cheap early exit, skips parsing and paid embedding) →
+  parse, chunk, embed → one transaction: `INSERT ... ON CONFLICT (content_hash) DO NOTHING
+  RETURNING id`, then the chunks. New document → **201**; known content → **200** with the
+  existing document and `created: false`.
+- The early lookup is only an optimisation. Correctness comes from the UNIQUE constraint: two
+  concurrent ingests of one file can both pass the lookup, but only one INSERT returns an ID.
+- **Rejected:** check-then-insert in application code (race condition). **Rejected:** a
+  client-supplied `Idempotency-Key` header: it needs key storage and client cooperation, and here
+  the content itself is a natural key. Limitation: a re-saved PDF with identical text has
+  different bytes and counts as a new document.
+
+## 2026-10-02: `POST /v1/ingest` takes a path inside the data directory, not an upload
+- **Rejected:** multipart file upload: needs the `python-multipart` dependency (not in the stack),
+  and an upload UI is on the do-not-build list.
+- Because the path comes from the client, `resolve_data_path` resolves it and rejects anything
+  outside `DATA_DIR` (path traversal), anything that isn't `.pdf`, and missing files (404).
+
+## 2026-10-02: Ingest is synchronous; no DB connection is held while embedding
+- Measured on the Gemini free tier: 143 chunks took 94 s, almost all of it waiting out two HTTP 429
+  rate-limit responses. A request that long is acceptable for a one-off admin action, not for users.
+- The scalable design is `202 Accepted` + a job on a queue + a worker. A message queue is on the
+  do-not-build list, so this is recorded here and under "Future work".
+- The pool connection is released before the embedding call and re-acquired for the write, so a
+  slow provider can't exhaust the 10-connection pool.
+
+## 2026-10-02: Embedding details
+- Provider interface is `embed(texts, kind)` with `kind` = `document` or `query`: Gemini embeds
+  passages and questions differently (`RETRIEVAL_DOCUMENT` / `RETRIEVAL_QUERY`).
+- Vectors are L2-normalised by us: measured norm of the 768-dim output was 0.58, not 1. Cosine
+  distance doesn't strictly need it, but unit vectors keep scores comparable and make
+  dot product = cosine if the index operator ever changes.
+- Retries: only for 429/5xx and transport errors, up to 6 attempts, waiting what the provider asks
+  (`Retry-After` header or `retryDelay` in the error body) or 2/4/8/16/32 s. 4xx is not retried.
+- The raw chunk text is embedded, with no title/heading prefix, for both strategies, so the eval
+  compares chunking alone. **Rejected for now:** prefixing each chunk with its document title and
+  heading ("contextual headers"); it is a candidate improvement to measure after the first eval.
+- API key is sent in the `x-goog-api-key` header, never in the URL, and is excluded from
+  `Settings`' repr.
+
+## 2026-10-02: `GET /v1/documents`: one JOIN, cursor (keyset) pagination
+- Chunk counts come from a single `LEFT JOIN ... GROUP BY` query. **Rejected:** one count query per
+  document (N+1): a test runs both and measures 11 queries vs 1 for 10 documents.
+- Pagination is keyset: `ORDER BY created_at DESC, id DESC`, next page =
+  `WHERE (created_at, id) < (last seen)`. The cursor is that pair, base64-encoded, so it is opaque.
+  The page size is 1–100 (default 20); the query fetches `limit + 1` rows to know if more exist.
+- **Rejected:** `LIMIT/OFFSET`. A test shows the failure: with a new document inserted between
+  page 1 and page 2, OFFSET returns a row twice, the cursor does not. OFFSET also gets slower with
+  depth (the database reads and discards the skipped rows). Trade-off: a cursor can't jump to
+  "page 7" and gives no total count.
+- A cursor we did not issue → 422 `invalid_cursor` (it is client input, so it is validated).
+- ETag / 304 for this endpoint (optional in the plan): not built.
+
+## 2026-10-02: What `EXPLAIN ANALYZE` showed on the real data (3 documents, 901 chunks)
+- Documents listing: sequential scans + hash join + hash aggregate, 0.8 ms. No index is used and
+  that is correct: with 3 documents and 901 chunks, reading everything is cheapest.
+- Lookup by `content_hash`: sequential scan over 3 rows, 0.05 ms, despite the unique index.
+  Same reason. The index exists for correctness (uniqueness) first, speed later.
+- Top-5 nearest chunks, unfiltered: **index scan on the HNSW index, 0.5 ms**; the same query with
+  index scans disabled (exact search): 3.4 ms.
+- Top-5 filtered by `strategy`: the planner chose a sequential scan + top-N sort (exact search over
+  the 299 matching rows), 1.6 ms, and did not use the HNSW index. Consequence: at this size
+  filtered retrieval is *exact*, not approximate. To revisit if the corpus grows (options: a
+  partial HNSW index per strategy, or pgvector's iterative scan).
+
+## 2026-10-02: Tests use their own database, `specseek_test`
+- **Rejected:** sharing the dev database (the phase 1 setup): ingest tests write and truncate
+  tables, which would wipe the real corpus. `tests/conftest.py` sets `DATABASE_URL` before the app
+  is imported, creates the database on first use and truncates it before each integration test.
+
 ## Future work (explicitly out of scope)
-- _(nothing yet)_
+- Asynchronous ingestion: `202 Accepted`, a queue and a worker (see the synchronous-ingest decision).
+- Compare `gemini-embedding-2` (available on the same key) against `gemini-embedding-001`.
+  Changing the embedding model means re-embedding every chunk: vectors from two models are not comparable.

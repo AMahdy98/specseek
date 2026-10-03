@@ -139,7 +139,15 @@ Auth, multi-user, rerankers, hybrid/BM25 search, conversation memory, streaming 
   Guidance 2023 (in `data/public/`, 225 pages → 956 naive / 640 section-aware chunks). Two real bugs logged in BUGS.md.
   Still open: decide whether to commit the public PDFs to git; phase-1 re-drill (domain errors vs HTTP, 4xx vs 5xx).
   **Next:** Phase 2b: Gemini embedding provider (raw httpx, 768 dims), storage, idempotent `POST /v1/ingest`
-  (parse/chunk via `asyncio.to_thread`); then 2c: `/v1/documents` from Postgres (N+1 → JOIN, cursor pagination). User must place PDFs in `data/public/` and `data/local/` first.
+  (parse/chunk via `asyncio.to_thread`); then 2c: `/v1/documents` from Postgres (N+1 → JOIN, cursor pagination).
+- **2026-10-02, session 3 (end):** Phase 2b + 2c done: `app/llm.py` (GeminiProvider, retries, quota fail-fast),
+  `app/ingest/store.py` + `service.py` (idempotent ingest, one transaction), `POST /v1/ingest`, `app/repository.py`
+  (Postgres, JOIN, keyset cursor), separate test DB `specseek_test`. 89 tests green. Image 371 MB. 4 bugs in BUGS.md.
+  Dev DB holds 3 of 4 public docs (901 chunks). **NPR-7150.2D is NOT ingested yet**: Gemini free tier allows 1,000
+  embedding texts/day per model and it needs 695; quota resets around 00:00 UTC on 2026-10-03. Public PDFs are un-ignored
+  in git (user decided to commit them). ETag/304 skipped (optional).
+  **Next:** (1) ingest NPR: `curl -X POST localhost:8000/v1/ingest -H 'Content-Type: application/json' -d '{"path": "public/NPR-7150.2D.pdf"}'`
+  (2) re-drill: domain errors vs HTTP + 4xx/5xx; phase 2 five-question drill. (3) Phase 3: retrieval + generation, `/v1/query`. User must place PDFs in `data/public/` and `data/local/` first.
 
 ## First session
 1. Save this brief to `CLAUDE.md`.
