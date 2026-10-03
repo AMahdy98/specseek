@@ -7,6 +7,7 @@ import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
+import httpx
 from fastapi import FastAPI
 
 from app.api.error_handlers import install_error_handlers
@@ -14,9 +15,10 @@ from app.api.middleware import RequestContextMiddleware
 from app.api.routes import router
 from app.config import get_settings
 from app.db import apply_schema, open_pool
+from app.llm import GeminiProvider
 from app.logging_config import configure_logging
 from app.models import ErrorResponse
-from app.repository import InMemoryDocumentRepository
+from app.repository import PostgresDocumentRepository
 
 # At import time: uvicorn has already set up its own loggers by the time it imports
 # this module, so this is where we take them over.
@@ -30,13 +32,20 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     settings = get_settings()
     await apply_schema(settings.database_url)
     app.state.pool = await open_pool(settings.database_url)
-    app.state.repo = InMemoryDocumentRepository()  # Phase 2: Postgres-backed repository
+    # One shared HTTP client: it keeps TCP/TLS connections to the provider open and reuses
+    # them, instead of paying a new handshake per call. 60 s covers a batch of 100 texts.
+    http_client = httpx.AsyncClient(timeout=httpx.Timeout(60.0, connect=10.0))
+    app.state.provider = GeminiProvider(
+        settings.gemini_api_key, http_client, settings.embedding_model
+    )
+    app.state.repo = PostgresDocumentRepository(app.state.pool)
     logger.info("startup_complete")
     try:
         yield
     finally:
         # Shutdown: uvicorn got SIGTERM/SIGINT, stopped accepting connections and waited for
-        # in-flight requests. Now return every connection to Postgres cleanly.
+        # in-flight requests. Now release what startup acquired, in reverse order.
+        await http_client.aclose()
         await app.state.pool.close()
         logger.info("shutdown_complete")
 

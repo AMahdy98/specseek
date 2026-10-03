@@ -4,7 +4,9 @@ Request models validate input at the boundary (bad input -> 422 before route cod
 Response models filter output (only declared fields are serialized).
 """
 
+from datetime import datetime
 from typing import Literal
+from uuid import UUID
 
 from pydantic import BaseModel, Field
 
@@ -29,9 +31,29 @@ class HealthResponse(BaseModel):
     database: Literal["ok", "unavailable"]
 
 
+class IngestRequest(BaseModel):
+    # Relative to the server's data directory, e.g. "public/NPR-7150.2D.pdf".
+    path: str = Field(min_length=1, max_length=300)
+
+
+class IngestResponse(BaseModel):
+    document_id: UUID
+    title: str
+    created: bool  # True with 201; False with 200 when this content was already ingested
+    chunk_counts: dict[str, int]  # per chunking strategy
+
+
 class DocumentSummary(BaseModel):
     """One row of GET /v1/documents."""
 
-    id: str
+    id: UUID
     title: str = Field(min_length=1)
-    chunk_count: int = Field(ge=0)
+    chunk_count: int = Field(ge=0)  # across both chunking strategies
+    created_at: datetime
+
+
+class DocumentPage(BaseModel):
+    """Body of GET /v1/documents: newest first."""
+
+    items: list[DocumentSummary]
+    next_cursor: str | None  # pass back as ?cursor=... for the next page; null on the last page

@@ -22,12 +22,21 @@ services:
 
   api:
     build: .
+    # GEMINI_API_KEY comes from .env (gitignored). `environment` below wins over
+    # `env_file`, so the localhost DATABASE_URL in .env is overridden here.
+    env_file:
+      - path: .env
+        required: false
     environment:
       # "db" is the service name above; Compose's internal DNS resolves it to the container.
       DATABASE_URL: postgresql://specseek:specseek@db:5432/specseek
       LOG_LEVEL: info
+      DATA_DIR: /app/data
     ports:
       - "8000:8080"
+    volumes:
+      # The PDFs are not baked into the image; mount them read-only.
+      - ./data:/app/data:ro
     depends_on:
       db:
         condition: service_healthy
