@@ -146,6 +146,8 @@ Auth, multi-user, rerankers, hybrid/BM25 search, conversation memory, streaming 
   Dev DB holds 3 of 4 public docs (901 chunks). **NPR-7150.2D is NOT ingested yet**: Gemini free tier allows 1,000
   embedding texts/day per model and it needs 695; quota resets around 00:00 UTC on 2026-10-03. Public PDFs are un-ignored
   in git (user decided to commit them). ETag/304 skipped (optional).
+  2026-10-03 02:09 UTC: NPR ingest attempted again, still 502 (daily quota exhausted, provider says ~21h50m).
+  User stays on the free tier. Queries also need 1 embedding each, so live `/v1/query` checks wait for quota too.
   **Next:** (1) ingest NPR: `curl -X POST localhost:8000/v1/ingest -H 'Content-Type: application/json' -d '{"path": "public/NPR-7150.2D.pdf"}'`
   (2) re-drill: domain errors vs HTTP + 4xx/5xx; phase 2 five-question drill. (3) Phase 3: retrieval + generation, `/v1/query`. User must place PDFs in `data/public/` and `data/local/` first.
 

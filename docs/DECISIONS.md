@@ -224,6 +224,18 @@ Format: **Decision** / Alternative rejected / Why. Only choices actually made go
   filtered retrieval is *exact*, not approximate. To revisit if the corpus grows (options: a
   partial HNSW index per strategy, or pgvector's iterative scan).
 
+## 2026-10-03: Stay on the Gemini free tier
+- Limit that matters: 1,000 embedding texts per day per model. The corpus is 1,596 texts, so a full
+  re-ingest (e.g. after a chunker change) is spread over two days; each `/v1/query` costs 1 text.
+- **Rejected (for now):** enabling billing. No cost, and the limits are workable for one developer.
+  Accepted consequences: free-tier inputs may be used by Google (fine for public-domain text; one
+  more reason the licensed `data/local/` documents are not embedded), and eval runs must be
+  budgeted against the daily quota.
+- Observed, not explained: on 2026-10-02 at ~19:26 UTC the 429 said "retry in 4h34m" (≈ 00:00 UTC),
+  but at 01:38 and 02:09 UTC on 2026-10-03 the quota was still exhausted ("retry in 22h21m" /
+  "21h50m"), with no successful embedding calls from this app in between. So the provider's
+  retry hint is not a reliable reset time; check usage at https://ai.dev/rate-limit before bulk runs.
+
 ## 2026-10-02: Tests use their own database, `specseek_test`
 - **Rejected:** sharing the dev database (the phase 1 setup): ingest tests write and truncate
   tables, which would wipe the real corpus. `tests/conftest.py` sets `DATABASE_URL` before the app
