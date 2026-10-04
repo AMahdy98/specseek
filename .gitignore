@@ -16,8 +16,8 @@ __pycache__/
 # data/public/ = US-government works (no copyright restriction): committed, so a clone is runnable.
 data/local/
 
-# Eval raw outputs can be large; commit the graded summary in docs/EVAL.md instead
-eval/runs/
+# Eval runs (raw answers, grading sheet, grades) ARE committed: they are the evidence
+# behind docs/EVAL.md.
 
 # Editors / OS
 .vscode/
