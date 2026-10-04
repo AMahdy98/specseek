@@ -163,6 +163,17 @@ Auth, multi-user, rerankers, hybrid/BM25 search, conversation memory, streaming 
   `eval/questions.yaml` (20 questions); build `eval/run_eval.py` (must re-ask on 502, budget embeddings: 20 questions
   = 20 embeds if the query vector is reused for both strategies) and the p50/p95 load script.
 
+- **2026-10-04, session 5:** Phase 3 explain-back, whiteboard drill #1 and 5-question drill done (3 correct, 2 partial;
+  see TOPICS.md drill log for re-drill items). User asked for user auth + saved chats per user: declined per the
+  do-not-build list, design sketch recorded under Future work in DECISIONS.md (candidate for TriageBot).
+  `eval/questions.yaml` created as an empty template with the field format.
+  2026-10-04: user asked for candidate questions; `eval/candidates.yaml` now holds 40 (26 direct, 5 table,
+  4 cross-reference, 5 unanswerable), each expected answer taken from the stored document text with clause + PDF page.
+  Recorded in DECISIONS.md; must be disclosed in EVAL.md.
+  **Next (Phase 4):** USER picks 20 from `eval/candidates.yaml`, verifies each against the PDF, and puts them in
+  `eval/questions.yaml` (ids q01..q20; Claude must not pick or grade for them). Then build `eval/run_eval.py` (both strategies, reuse one query embedding per question, re-ask on
+  502, save raw answers under `eval/runs/`), user grades manually, fill `docs/EVAL.md`; then the p50/p95 load script.
+
 ## First session
 1. Save this brief to `CLAUDE.md`.
 2. Ask me, in one message: whether Docker (and which setup), uv, Node and gcloud are already installed in WSL; which LLM/embedding API keys I have; which standards PDFs I already have access to. Then verify with commands (`docker --version`, `uv --version`, `node -v`, `which python3`) instead of taking my word for it.

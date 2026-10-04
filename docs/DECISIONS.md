@@ -299,6 +299,16 @@ Format: **Decision** / Alternative rejected / Why. Only choices actually made go
 - An out-of-corpus question (CAN bus bit rate) was refused; its best score was 0.58 versus
   0.69–0.80 for answerable questions. Too few samples to set a relevance floor yet.
 
+## 2026-10-04: Eval questions: candidates proposed by the assistant, chosen and verified by me
+- The brief said I write all 20 questions myself. Changed at my request: the assistant proposed
+  40 candidates (`eval/candidates.yaml`), each with its expected answer taken from the document
+  text, clause and PDF page; I choose 20, check each against the PDF, and may reword them.
+  Grading stays manual and mine.
+- **Trade-off, to be stated in EVAL.md:** faster, and every expected answer is traceable to a
+  page; but the proposer had seen how the documents were chunked, which can bias the set towards
+  passages that chunk cleanly, and the questions are not purely from my own domain knowledge.
+  Mitigation: favour table and cross-reference candidates, reword, and add some of my own.
+
 ## Future work (explicitly out of scope)
 - Token-bucket rate limiter and LLM response cache on `/v1/query` (optional items, not built yet).
 - **User accounts and saved chats per user** (requested 2026-10-03; auth, multi-user and
