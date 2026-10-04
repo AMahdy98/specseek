@@ -106,3 +106,19 @@ Partial means some of the topic exists; the pointer says which part.
      with no chunks becomes one row of NULLs, so COUNT(*) would say 1; COUNT(c.id) skips NULLs → 0.
      A plain JOIN would drop that document entirely).
   3. Re-drill, domain error vs HTTPException: correct (was wrong on 2026-10-02).
+- 2026-10-04, Phase 3 explain-back:
+  1. Diagnosing a wrong answer: partial (right instinct to look at citations; but the test is
+     "is the passage containing the answer among the 5 citations?", not the score, and empty
+     citations is not a missed refusal: it means an empty corpus, where we refuse without the LLM).
+  2. Why an exact refusal sentence: correct.
+  3. What section-aware bought in the example: correct (clause citations; one example proves
+     nothing about accuracy; the eval decides).
+- 2026-10-04, whiteboard drill #1 (after phase 3):
+  Architecture: correct skeleton (Compose, API, Postgres+pgvector, async pool, HTTPS to the models,
+  read-only PDF mount). Missed: the ingestion pipeline (parse → chunk → embed → store) and the two
+  chunking strategies, which are the centre of the project; model names; what a chunk row holds.
+  Query path: correct order (validate → embed → search → generate → respond). Missed: prompt
+  construction (the whole step between search and generate), top-5 / cosine / strategy filter,
+  the document filter and its 404, the no-passages refusal without an LLM call, what the response
+  contains (answer, refused, citations), and what fails where (422 / 404 / 502 after 3 attempts).
+  Re-drill: say the numbers (5, 768, temperature 0, 3 attempts) and the failure at each step.
