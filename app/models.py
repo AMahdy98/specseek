@@ -43,6 +43,32 @@ class IngestResponse(BaseModel):
     chunk_counts: dict[str, int]  # per chunking strategy
 
 
+class QueryRequest(BaseModel):
+    question: str = Field(min_length=3, max_length=1000)
+    document_id: UUID | None = None  # restrict the search to one document
+    # Which set of chunks to search. Both exist so the evaluation can compare them.
+    strategy: Literal["naive", "section_aware"] = "section_aware"
+
+
+class Citation(BaseModel):
+    """One passage that was given to the model as context."""
+
+    document_id: UUID
+    document: str
+    clause_id: str | None
+    heading: str | None
+    page: int
+    snippet: str  # the start of the passage, for display
+    score: float  # cosine similarity between question and passage, 0..1
+
+
+class QueryResponse(BaseModel):
+    answer: str
+    refused: bool  # True when the answer is "I don't know based on these documents."
+    strategy: Literal["naive", "section_aware"]
+    citations: list[Citation]  # best match first
+
+
 class DocumentSummary(BaseModel):
     """One row of GET /v1/documents."""
 

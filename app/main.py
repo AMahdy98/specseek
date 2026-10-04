@@ -36,7 +36,10 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     # them, instead of paying a new handshake per call. 60 s covers a batch of 100 texts.
     http_client = httpx.AsyncClient(timeout=httpx.Timeout(60.0, connect=10.0))
     app.state.provider = GeminiProvider(
-        settings.gemini_api_key, http_client, settings.embedding_model
+        settings.gemini_api_key,
+        http_client,
+        embedding_model=settings.embedding_model,
+        generation_model=settings.generation_model,
     )
     app.state.repo = PostgresDocumentRepository(app.state.pool)
     logger.info("startup_complete")

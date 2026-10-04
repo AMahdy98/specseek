@@ -13,12 +13,16 @@ from app.db import ping
 from app.ingest.service import ingest_pdf, resolve_data_path
 from app.llm import Provider
 from app.models import (
+    Citation,
     DocumentPage,
     ErrorResponse,
     HealthResponse,
     IngestRequest,
     IngestResponse,
+    QueryRequest,
+    QueryResponse,
 )
+from app.rag import answer_question
 from app.repository import DocumentRepository, get_repository
 
 router = APIRouter()
@@ -95,4 +99,41 @@ async def ingest(
         title=result.title,
         created=result.created,
         chunk_counts=result.chunk_counts,
+    )
+
+
+SNIPPET_CHARS = 300
+
+
+# POST although it only reads: the question can be long and may be sensitive, and a GET
+# would put it in the URL (browser history, proxy and access logs).
+@router.post(
+    "/query",
+    response_model=QueryResponse,
+    responses={
+        404: {"model": ErrorResponse, "description": "document_id does not exist"},
+        502: {"model": ErrorResponse, "description": "Embedding or LLM provider failed"},
+    },
+)
+async def query(body: QueryRequest, pool: PoolDep, provider: ProviderDep) -> QueryResponse:
+    """Answer a question from the ingested documents, with the passages used as sources."""
+    result = await answer_question(
+        body.question, pool, provider, strategy=body.strategy, document_id=body.document_id
+    )
+    return QueryResponse(
+        answer=result.answer,
+        refused=result.refused,
+        strategy=body.strategy,
+        citations=[
+            Citation(
+                document_id=chunk.document_id,
+                document=chunk.document_title,
+                clause_id=chunk.clause_id,
+                heading=chunk.heading,
+                page=chunk.page,
+                snippet=chunk.content[:SNIPPET_CHARS],
+                score=round(chunk.score, 4),
+            )
+            for chunk in result.sources
+        ],
     )
