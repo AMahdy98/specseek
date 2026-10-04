@@ -7,18 +7,18 @@ Partial means some of the topic exists; the pointer says which part.
 
 | Topic | Phase | Status | Pointer |
 |---|---|---|---|
-| RESTful design, verbs, status codes, PUT vs PATCH | 0–3 | built (partial: 2 GETs + POST with 201/200/404/422/502) | `app/api/routes.py` |
+| RESTful design, verbs, status codes, PUT vs PATCH | 0–3 | built (4 endpoints; PUT/PATCH explained only) | `app/api/routes.py` |
 | API versioning (`/v1`) | 1 | built | `app/main.py` (`include_router(prefix="/v1")`) |
 | Idempotency (SHA-256 content hash on ingest) | 2 | built | `app/ingest/service.py:ingest_pdf`, `store.insert_document` (ON CONFLICT), `tests/test_ingest.py` |
 | Cursor pagination | 2 | built | `app/repository.py` (keyset on `created_at, id`), `tests/test_documents.py` (cursor vs OFFSET under inserts) |
 | ETags / HTTP caching (opt) | 2 | — (optional; skipped so far) | |
 | Validation layers + exception hierarchy | 1 | built | `app/errors.py`, `app/api/error_handlers.py`; raised by `parser.py`, `service.py` (path guard), `llm.py` |
-| Error handling backend → frontend (LLM timeout) | 3, 5 | built (partial: provider failure → `ProviderError` → 502 envelope; UI in phase 5) | `app/llm.py:_post`, `tests/test_ingest.py` |
+| Error handling backend → frontend (LLM timeout) | 3, 5 | built (partial: timeout → retries → `ProviderError` → 502 envelope; UI in phase 5) | `app/llm.py:_post`, `tests/test_query.py:test_llm_timeout_becomes_a_502_error_envelope` |
 | Parameterized queries / SQL injection | 1 | built | `app/ingest/store.py` (every value is a `%s` parameter) |
 | CORS | 5 | — | |
-| Rate limiting, token bucket (opt) | 3 | — | |
-| LLM response cache (opt) | 3 | — | |
-| Observability: JSON logs, request ID, stage timing | 1, 3 | built (partial: logs + request ID + per-request duration; stage timing in phase 3) | `app/logging_config.py`, `app/api/middleware.py` |
+| Rate limiting, token bucket (opt) | 3 | — (optional; not built) | |
+| LLM response cache (opt) | 3 | — (optional; not built) | |
+| Observability: JSON logs, request ID, stage timing | 1, 3 | built | `app/logging_config.py`, `app/api/middleware.py`; `query_complete` (embed/search/generate ms) in `app/rag.py`, `ingest_complete` in `app/ingest/service.py` |
 | Performance: p50/p95, slow-endpoint checklist | 4 | — | `docs/PERF.md` |
 | Graceful shutdown / lifespan | 1 | built | `app/main.py:lifespan`, Dockerfile `exec` CMD; verified exit code 0 on `docker compose stop` |
 | Event loop / asyncio, `run_in_executor` | 0, 2 | built | `app/ingest/service.py`: hashing, parsing, chunking via `asyncio.to_thread` |
@@ -33,8 +33,8 @@ Partial means some of the topic exists; the pointer says which part.
 | Cloud Run (scale to zero, cold starts, timeouts, SIGTERM) | 6 | — | |
 | Cloud Storage / signed URLs (opt) | 6 | — | |
 | Kubernetes & IaC (study only) | 6 | — | |
-| RAG end to end | 2–4 | built (partial: parse → chunk → embed → store; no retrieval yet) | `app/ingest/`, `app/llm.py` |
-| Vector DB choice (pgvector vs dedicated) | 3 | — | |
+| RAG end to end | 2–4 | built (eval still to come) | `app/ingest/`, `app/llm.py`, `app/retrieval.py`, `app/prompt.py`, `app/rag.py` |
+| Vector DB choice (pgvector vs dedicated) | 3 | studied | DECISIONS.md, "Retrieval = top-5 by cosine similarity" |
 | TanStack Query, server vs client state | 5 | — | |
 | State management comparison | 5 | — | |
 | Hooks (effects, cleanup, memoization with measurement) | 5 | — | |

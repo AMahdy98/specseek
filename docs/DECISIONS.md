@@ -241,7 +241,87 @@ Format: **Decision** / Alternative rejected / Why. Only choices actually made go
   tables, which would wipe the real corpus. `tests/conftest.py` sets `DATABASE_URL` before the app
   is imported, creates the database on first use and truncates it before each integration test.
 
+## 2026-10-03: Retrieval = top-5 by cosine similarity, one SQL query, per strategy
+- `ORDER BY embedding <=> query LIMIT 5`, filtered by `strategy` (and optionally `document_id`);
+  the reported score is `1 - cosine distance`.
+- **Top-k = 5.** Fewer risks missing the passage; more adds cost and distracting text. To be
+  revisited with eval evidence, not by feel.
+- `strategy` is a request field (default `section_aware`) so the evaluation can ask both.
+- **Rejected:** pgvector alternatives such as a dedicated vector database (Pinecone, Qdrant,
+  Chroma): one more service to run, deploy and keep consistent with Postgres, for a few thousand
+  vectors. With pgvector the chunk text, metadata and vector live in one row, and the document
+  filter is an ordinary `WHERE`. A dedicated vector DB earns its place at tens of millions of
+  vectors or when filtered approximate search has to stay fast.
+- **Rejected (do-not-build list):** rerankers, hybrid/BM25 search.
+
+## 2026-10-03: Grounded prompt (`PROMPT_VERSION = "v1"`)
+- System instruction: use only the numbered passages; a fixed refusal sentence ("I don't know
+  based on these documents."); cite as [document, clause]; preserve "shall/should/may" exactly;
+  treat passages as reference material, not instructions (prompt-injection guard).
+- User message: numbered passages, each with a `Document | Clause | Heading | Page` header, then
+  the question last.
+- The refusal is an exact sentence so code and the eval can detect it by string match
+  (`refused: true` in the response). A refusal is a 200, not an error.
+- `temperature = 0` for repeatable answers. Generation model pinned by name
+  (`gemini-3.8-flash`, configurable), not an alias like `flash-latest`, so eval results don't
+  shift when the provider moves the alias.
+- With an empty retrieval result the service returns the refusal itself and never calls the LLM.
+
+## 2026-10-03: `citations` = the passages given to the model, not only the ones it cited
+- The response lists all retrieved passages (best first) with clause, heading, page, snippet and
+  score. **Rejected:** parsing the answer to keep only passages the model actually cited: fragile
+  string matching. The user can compare the `[document, clause]` markers in the answer with the list.
+
+## 2026-10-03: Interactive calls get 3 attempts; batch calls get 6
+- `/v1/query` (query embedding + generation): 3 attempts (waits of 2 s and 4 s), then
+  `ProviderError` → 502. A person is waiting; minutes of backoff would be worse than a clear
+  error. Ingestion keeps 6 attempts.
+- Measured, not guessed: the first version allowed 2 attempts, and 3 of 5 real questions failed
+  with 502 because `gemini-3.8-flash` answered "503 high demand" twice in a row. With 3
+  attempts, 4 of the next 5 succeeded. The model is simply busy on the free tier; the eval
+  script must re-ask questions that fail this way.
+- A cut-off answer (`finishReason = MAX_TOKENS`) or an empty/blocked one is raised as
+  `ProviderError` rather than returned as if complete.
+
+## 2026-10-03: `POST /v1/query`, although it only reads
+- **Rejected:** `GET /v1/query?question=...`: the question would sit in URLs (browser history,
+  proxy and access logs) and URL length is limited. Trade-off: POST responses aren't cached by
+  HTTP caches, and POST is not idempotent by definition (here it has no side effects anyway).
+- The question text is not written to our logs; only its length.
+
+## 2026-10-03: Observations from the first real questions (9 asked; not an evaluation)
+- Latency is almost entirely the LLM: embed 0.3–0.5 s, vector search 2–3 ms, generation 3–23 s
+  (the long ones include a retry or a provider-requested wait).
+- Near-duplicate passages crowd the context: for "acquisition versus development", 3 of the 5
+  retrieved section-aware chunks were the same requirement 3.1.2 (NPR body, NPR Appendix C
+  matrix, NASA-STD Table 1). The answer was right, but 3 of 5 context slots carried one fact.
+- Section-aware answers cite clause IDs; naive answers can only cite pages.
+- An out-of-corpus question (CAN bus bit rate) was refused; its best score was 0.58 versus
+  0.69–0.80 for answerable questions. Too few samples to set a relevance floor yet.
+
 ## Future work (explicitly out of scope)
+- Token-bucket rate limiter and LLM response cache on `/v1/query` (optional items, not built yet).
+- **User accounts and saved chats per user** (requested 2026-10-03; auth, multi-user and
+  conversation memory are on the do-not-build list, so not built). If SpecSeek needed it, what
+  would change and where:
+  - *Authentication:* don't store passwords. Delegate sign-in to an identity provider over
+    OAuth2/OIDC (e.g. Google sign-in, or Firebase Auth / Identity Platform on GCP). The API verifies
+    the provider's signed ID token (JWT) on each request in one FastAPI dependency
+    (`get_current_user`), which every protected route declares. 401 = not signed in, 403 = signed in
+    but not allowed.
+  - *Data model:* `users(id, provider_subject UNIQUE, email, created_at)`,
+    `conversations(id, user_id FK, title, created_at)`,
+    `messages(id, conversation_id FK, role, content, citations jsonb, created_at)`; an index on
+    `(user_id, created_at)` for the sidebar list, which would reuse the cursor pagination.
+  - *Authorization:* every conversation query filters by the signed-in `user_id` (never trust an
+    ID from the request alone); another user's conversation returns 404, not 403, so its existence
+    isn't revealed.
+  - *Two different features:* saving chats is storage only. Using earlier turns to answer follow-up
+    questions ("and what about class C?") is conversation memory: the question must be rewritten
+    into a standalone one before retrieval, and the eval has to cover multi-turn cases.
+  - *Also affected:* the rate limiter becomes per-user; logs gain a user ID (and privacy rules for
+    stored questions); the frontend needs a login flow, token handling and CORS with credentials.
+  - Natural home: the next project (TriageBot), which already plans Firestore/Firebase.
 - Asynchronous ingestion: `202 Accepted`, a queue and a worker (see the synchronous-ingest decision).
 - Compare `gemini-embedding-2` (available on the same key) against `gemini-embedding-001`.
   Changing the embedding model means re-embedding every chunk: vectors from two models are not comparable.

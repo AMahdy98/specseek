@@ -8,6 +8,9 @@ __pycache__/
 # Secrets / local config
 .env
 
+# Database backups (pg_dump)
+*.dump
+
 # Standards PDFs (see docs/DECISIONS.md, "Corpus licensing policy").
 # data/local/  = licensed docs (CiA, ISO/IEC): never committed, never deployed.
 # data/public/ = US-government works (no copyright restriction): committed, so a clone is runnable.

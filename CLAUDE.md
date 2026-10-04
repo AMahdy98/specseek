@@ -151,6 +151,18 @@ Auth, multi-user, rerankers, hybrid/BM25 search, conversation memory, streaming 
   **Next:** (1) ingest NPR: `curl -X POST localhost:8000/v1/ingest -H 'Content-Type: application/json' -d '{"path": "public/NPR-7150.2D.pdf"}'`
   (2) re-drill: domain errors vs HTTP + 4xx/5xx; phase 2 five-question drill. (3) Phase 3: retrieval + generation, `/v1/query`. User must place PDFs in `data/public/` and `data/local/` first.
 
+- **2026-10-03, session 4:** NPR-7150.2D ingested (quota was available at 11:27 UTC): the dev DB now holds all 4 public
+  docs, 1,596 chunks. Phase 3 done: `app/retrieval.py` (top-5 cosine), `app/prompt.py` (grounded prompt v1, exact
+  refusal sentence), `app/rag.py` (embed → search → generate, stage timing), `GeminiProvider.generate`
+  (`gemini-3.8-flash`, temp 0), `POST /v1/query` (`strategy` field for the eval). 118 tests green. 9 real questions
+  asked; answers grounded and cited; out-of-corpus question refused. `gemini-3.8-flash` is often 503-busy on the
+  free tier (interactive retries raised from 2 to 3). User stays on the free tier (1,000 embeddings/day; ~705 used
+  on 2026-10-03). Optional rate limiter and LLM cache NOT built. `*.dump` backups are gitignored.
+  **Next:** (1) grade the phase-3 explain-back answers, then the **whiteboard drill** (user describes architecture +
+  query path from memory; compare with INTERVIEW.md) and the 5-question phase-3 drill. (2) Phase 4: user writes
+  `eval/questions.yaml` (20 questions); build `eval/run_eval.py` (must re-ask on 502, budget embeddings: 20 questions
+  = 20 embeds if the query vector is reused for both strategies) and the p50/p95 load script.
+
 ## First session
 1. Save this brief to `CLAUDE.md`.
 2. Ask me, in one message: whether Docker (and which setup), uv, Node and gcloud are already installed in WSL; which LLM/embedding API keys I have; which standards PDFs I already have access to. Then verify with commands (`docker --version`, `uv --version`, `node -v`, `which python3`) instead of taking my word for it.

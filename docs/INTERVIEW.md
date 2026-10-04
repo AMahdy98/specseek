@@ -1,26 +1,49 @@
 # SpecSeek: interview study guide
 
-Accurate to the code as of **Phase 2** (ingestion works end to end; 3 of 4 public documents are in the database, the fourth is waiting for the embedding quota to reset; no retrieval yet). Sections fill in as phases land; nothing here describes
+Accurate to the code as of **Phase 3** (the full pipeline works: ingest, retrieve, generate, cite; all 4 public documents are in the database; the evaluation has not been run yet).
 unbuilt features as if they exist.
 
 ## 1. 90-second walkthrough
-_(Written after Phase 3, once there is a query path to describe.)_
+"SpecSeek answers questions about engineering standards and tells you which clause the answer
+comes from. I built it on four public documents: two NASA software standards and two FDA
+software guidances, 225 pages.
+
+It has two halves. Ingestion takes a PDF, pulls out the text, cuts it into chunks, turns each
+chunk into a vector with an embedding model, and stores text, metadata and vector together in
+Postgres with the pgvector extension. Querying embeds the question the same way, asks Postgres
+for the five closest chunks, and gives those five passages to an LLM with strict instructions:
+answer only from these passages, cite the clause, keep words like 'shall' and 'should' exactly,
+and say 'I don't know based on these documents' if the answer isn't there.
+
+The part I spent most time on is chunking. I keep two strategies side by side: a naive one that
+cuts every 512 characters, and a section-aware one that makes one chunk per numbered clause, so
+an answer can cite 'NPR 7150.2D, clause 3.1.2'. I wrote a 20-question evaluation to compare them.
+
+Around that core it's an ordinary production-style service: FastAPI, async end to end, Docker,
+one error format, JSON logs with a request ID, an idempotent ingest endpoint, and cursor
+pagination. I wrote the pipeline myself instead of using LangChain so I can explain every step."
+
+_(Add the eval result sentence after Phase 4; do not quote scores before they exist.)_
 
 ## 2. Architecture
-Current (Phase 1): two containers via Docker Compose. Documents are still in memory until phase 2.
-
 ```mermaid
 flowchart LR
-  Client -->|"HTTP :8000"| API
+  User -->|"POST /v1/query<br/>POST /v1/ingest"| API
   subgraph Compose
-    API["api container<br/>uvicorn + FastAPI<br/>/v1/health, /v1/documents"]
-    DB[("db container<br/>Postgres 16 + pgvector<br/>volume: pgdata")]
-    API -->|"psycopg async pool<br/>host 'db':5432"| DB
+    API["api container<br/>uvicorn + FastAPI"]
+    DB[("db container<br/>Postgres 16 + pgvector<br/>documents, chunks(vector 768)")]
+    API -->|"psycopg async pool"| DB
   end
+  API -->|"HTTPS (httpx)<br/>embed + generate"| Gemini["Gemini API<br/>gemini-embedding-001<br/>gemini-3.8-flash"]
+  PDFs["data/public/*.pdf"] -.->|"read-only mount"| API
 ```
 
-Startup: `apply_schema` (advisory lock + idempotent DDL) → `open_pool` (fail fast if DB down).
-Shutdown: SIGTERM → uvicorn stops accepting, drains in-flight requests → lifespan closes the pool.
+Whiteboard version, five boxes left to right:
+**Client → API (FastAPI) → [Embedding model] → Postgres + pgvector → [LLM] → answer + citations.**
+Draw ingestion as a second arrow into Postgres: PDF → parse → chunk (naive / section-aware) → embed → store.
+
+Startup: `apply_schema` (advisory lock + idempotent DDL) → `open_pool` (fail fast if DB down) → shared `httpx.AsyncClient`.
+Shutdown: SIGTERM → uvicorn stops accepting, drains in-flight requests → lifespan closes the HTTP client and the pool.
 
 ## 3. Request traces
 `GET /v1/health`:
@@ -36,6 +59,13 @@ Every request, before and after the route (`app/api/middleware.py:RequestContext
    bad input → 422 envelope; unknown path/verb → 404/405 envelope; anything else is caught by the
    middleware → stack trace logged, generic 500 envelope (no internals leaked).
 4. Always: one JSON access-log line with `request_id`, `method`, `path`, `status`, `duration_ms`.
+
+`POST /v1/query` with `{"question": "...", "strategy": "section_aware", "document_id": null}`:
+1. `routes.query`: Pydantic validates (question 3–1000 chars, known strategy, UUID) → 422 otherwise.
+2. `rag.answer_question` → `GeminiProvider.embed([question], kind="query")`: one HTTPS call, vector normalised to length 1. Fails: provider down/overloaded after 3 attempts, or quota → `ProviderError` → 502.
+3. One pooled connection: `retrieval.document_exists` if a filter was given (missing → `NotFound` → 404), then `retrieval.search_chunks`: `ORDER BY embedding <=> query LIMIT 5` for that strategy. The connection is released before step 4.
+4. `prompt.build_prompt`: numbered passages with `Document | Clause | Heading | Page` headers, question last. `GeminiProvider.generate(SYSTEM_PROMPT, prompt)` at temperature 0. No passages → skip the LLM and return the refusal sentence. Fails: timeout/503 after 3 attempts, blocked or cut-off answer → `ProviderError` → 502.
+5. Response: `answer`, `refused` (exact-sentence match), `strategy`, and `citations` = the 5 passages with clause, heading, page, 300-char snippet and score. One log line: `embed_ms`, `search_ms`, `generate_ms`, `top_score`.
 
 `POST /v1/ingest` with `{"path": "public/NPR-7150.2D.pdf"}`:
 1. `routes.ingest`: Pydantic validates the body (missing path → 422).
@@ -55,21 +85,22 @@ Every request, before and after the route (`app/api/middleware.py:RequestContext
 ## 4. Numbers to know cold
 | Number | Value |
 |---|---|
-| Tests | 89 (76 unit, 13 integration against a real Postgres test database) |
+| Tests | 118 (87 unit, 31 integration against a real Postgres test database) |
 | Chunk size / overlap | naive: 512 chars, no overlap. section_aware: one chunk per clause, max 3200 chars (≈800 tokens at 4 chars/token), 400-char overlap when a clause is split |
 | Embedding model + dimension | Gemini `gemini-embedding-001`, 768 dimensions (truncated from 3072), L2-normalised by us (raw norm measured 0.58) |
 | Embedding limits (free tier, measured) | 100 texts per request; about one batch per minute before HTTP 429; **1,000 texts per day per model** |
-| Ingest time (measured, free tier) | FDA Off-The-Shelf 143 chunks: 94 s · FDA Premarket 268: 142 s · NASA-STD 490: 272 s. Almost all of it is waiting out rate limits; parse 0.2–0.5 s, store 0.1–0.4 s |
+| Ingest time (measured, free tier) | FDA Off-The-Shelf 143 chunks: 94 s · FDA Premarket 268: 142 s · NASA-STD 490: 272 s · NPR 7150.2D 695: 342 s. Almost all of it is waiting out rate limits; parse 0.2–0.5 s, store 0.1–0.4 s |
 | Replay of an ingested file | 200 in 5 ms, no provider call |
-| In the database (2026-10-02) | 3 documents, 901 chunks (602 naive + 299 section-aware), 8.2 MB including indexes. NPR 7150.2D (695 chunks) pending quota reset |
+| In the database (2026-10-03) | 4 documents, 1,596 chunks (956 naive + 640 section-aware), 14 MB including indexes. pgvector 0.8.6 |
 | Vector search (measured, 901 chunks) | top-5 via HNSW index 0.5 ms; exact scan 3.4 ms; filtered by strategy 1.6 ms (planner uses an exact scan) |
 | DB pool | min 1 / max 10 connections, 2 s acquire timeout for health |
-| Top-k | 5 (planned) |
+| Top-k | 5, by cosine similarity (`<=>`), per chunking strategy |
+| Generation | `gemini-3.8-flash`, temperature 0, max 2048 output tokens, prompt version v1 |
 | Corpus size | 4 public documents, 225 pages → 956 naive chunks, 640 section-aware chunks (measured 2026-10-02 by running the chunkers; not yet in the DB) |
 | Per document (pages → naive / section-aware) | NASA-STD-8739.8B: 70 → 281 / 209 · NPR 7150.2D: 89 → 354 / 341 · FDA Premarket: 46 → 219 / 49 · FDA Off-The-Shelf: 20 → 102 / 41 |
 | Parse time | 134–357 ms per document on my machine; chunking under 4 ms |
 | Eval scores | not measured |
-| p50 / p95 latency | not measured |
+| Query latency (9 real questions, not a load test) | embed 0.3–0.5 s · vector search 2–3 ms · generation 3–23 s (long ones include a retry or provider wait). p50/p95: not measured yet (Phase 4) |
 | Cost per query | not measured |
 | Docker image size | 371 MB (`docker image ls`, 2026-10-02, after adding PyMuPDF and numpy via pgvector). Was 274 MB before the ingestion dependencies |
 
@@ -100,6 +131,10 @@ See `DECISIONS.md`. Short form so far:
 
 ## 7. Known limitations
 - Schema can only be created, not migrated.
+- The free-tier LLM is often busy: `gemini-3.8-flash` returned "503 high demand" on about 1 in 3 calls in my first runs; `/v1/query` retries twice, then returns 502.
+- Near-duplicate chunks can fill the context (the same requirement appears in NPR's body, its Appendix C matrix and NASA-STD's Table 1); there is no deduplication or reranking.
+- No relevance floor yet: the LLM is called even when the best match is weak.
+- `citations` lists every passage given to the model, not only the ones it actually cited.
 - Ingest is synchronous: minutes per document on the free tier. The scalable design is 202 + queue + worker.
 - The whole corpus (1,596 texts) exceeds one day of free embedding quota, so a full re-ingest takes two days on the free tier.
 - A re-saved PDF with the same text has a different hash and would be ingested as a new document.
@@ -114,3 +149,20 @@ See `DECISIONS.md`. Short form so far:
   A: Use an async API (`asyncio.sleep`, `httpx.AsyncClient`); for unavoidable blocking code, `asyncio.to_thread` / `run_in_executor`; or a plain `def` endpoint (FastAPI's threadpool, 40 threads by default).
 - Follow-up: When would a thread pool not help?
   A: CPU-bound pure-Python work holds the GIL → use a process pool. Libraries that release the GIL in C code (e.g. PyMuPDF) are fine in threads.
+
+**Retrieval**
+- Q: How do you find the relevant passages?
+  A: Embed the question, then one SQL query: `ORDER BY embedding <=> query LIMIT 5`, filtered by chunking strategy and optionally by document. `<=>` is cosine distance; I report `1 - distance` as the score.
+- Follow-up: Why pgvector and not a vector database?
+  A: A few thousand vectors. One system holds text, metadata and vectors in one row, filters are plain `WHERE`, writes are transactional with the document row. A dedicated store pays off at tens of millions of vectors or heavy filtered approximate search.
+- Follow-up: Is your search exact or approximate?
+  A: Measured with `EXPLAIN ANALYZE`: unfiltered it uses the HNSW index (approximate, 0.5 ms); filtered by strategy the planner picks an exact scan (1.6 ms at 901 chunks). So today my filtered retrieval is exact. If the corpus grew I'd look at a partial index per strategy or pgvector's iterative scan.
+
+**Grounding**
+- Q: How do you stop the model from making things up?
+  A: The system prompt allows only the supplied passages, demands a citation per statement, and prescribes one exact refusal sentence. Temperature 0. And I measure it: the eval includes unanswerable questions.
+- Follow-up: How do you know it refused?
+  A: The refusal is a fixed sentence, so code detects it by string match and returns `refused: true`. With zero retrieved passages the service refuses without calling the LLM at all.
+- Follow-up: What about a malicious document that says "ignore your instructions"?
+  A: The prompt tells the model passages are reference material, not instructions, and they are sent as user content, separate from the system instruction. That reduces the risk; it does not eliminate it. I'd say so rather than claim it's solved.
+
