@@ -170,8 +170,14 @@ Auth, multi-user, rerankers, hybrid/BM25 search, conversation memory, streaming 
   2026-10-04: user asked for candidate questions; `eval/candidates.yaml` now holds 40 (26 direct, 5 table,
   4 cross-reference, 5 unanswerable), each expected answer taken from the stored document text with clause + PDF page.
   Recorded in DECISIONS.md; must be disclosed in EVAL.md.
-  **Next (Phase 4):** USER picks 20 from `eval/candidates.yaml`, verifies each against the PDF, and puts them in
-  `eval/questions.yaml` (ids q01..q20; Claude must not pick or grade for them). Then build `eval/run_eval.py` (both strategies, reuse one query embedding per question, re-ask on
+  User picked 20 (candidates 1,2,3,4,12,13,15,16,17,18,20,22,23,26,28,31,32,35,37,40) → `eval/questions.yaml`
+  q01..q20 (12 direct, 3 table, 3 cross-ref, 2 unanswerable), all still `verified: false`.
+  `eval/run_eval.py` built (`run`, `--only`, `--resume`, `tabulate`), `rag.answer_question` takes an optional
+  `query_vector`; 131 tests green; `pyyaml` is a dev dependency; `eval/runs/` is committed. One trial run on q05
+  (`eval/runs/20261004T172145Z*`, not graded). EVAL.md holds the method and disclosure; results empty.
+  **Next (Phase 4):** USER (1) verifies each question against the PDF and sets `verified: true`; (2) runs
+  `uv run --env-file .env python -m eval.run_eval run`; (3) grades in the `-grades.yaml` file (Claude must NOT grade);
+  then Claude tabulates, fills EVAL.md from the real numbers, and builds the p50/p95 load script (`docs/PERF.md`). Then build `eval/run_eval.py` (both strategies, reuse one query embedding per question, re-ask on
   502, save raw answers under `eval/runs/`), user grades manually, fill `docs/EVAL.md`; then the p50/p95 load script.
 
 ## First session

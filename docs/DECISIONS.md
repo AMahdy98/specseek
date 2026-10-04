@@ -309,6 +309,21 @@ Format: **Decision** / Alternative rejected / Why. Only choices actually made go
   passages that chunk cleanly, and the questions are not purely from my own domain knowledge.
   Mitigation: favour table and cross-reference candidates, reword, and add some of my own.
 
+## 2026-10-04: Evaluation runner design
+- `eval/run_eval.py` calls `rag.answer_question` directly, not the HTTP endpoint: this is what
+  the HTTP-agnostic service layer was for. Same pool, same provider, same prompt as the API.
+- One embedding per question, reused for both strategies (`query_vector` parameter): 20 of the
+  1,000 daily embeddings instead of 40, and both strategies get the identical query vector, so
+  the only variable is the chunking.
+- It re-asks when the provider is busy (up to 6 tries, 30 s apart), stops cleanly on an
+  exhausted quota, saves after every answer and can `--resume`.
+- "Expected page retrieved" is computed automatically as a retrieval hint. **Rejected:** any
+  automatic grading of answers (LLM-as-judge, string overlap): the brief makes human judgment
+  final, and an eval framework is on the do-not-build list.
+- Run files are committed (`eval/runs/`): they are the evidence behind EVAL.md.
+- `pyyaml` added as a *dev* dependency to read the question file (implied by the brief's
+  `questions.yaml`; it was already installed transitively through `uvicorn[standard]`).
+
 ## Future work (explicitly out of scope)
 - Token-bucket rate limiter and LLM response cache on `/v1/query` (optional items, not built yet).
 - **User accounts and saved chats per user** (requested 2026-10-03; auth, multi-user and

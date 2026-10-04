@@ -33,7 +33,7 @@ Partial means some of the topic exists; the pointer says which part.
 | Cloud Run (scale to zero, cold starts, timeouts, SIGTERM) | 6 | — | |
 | Cloud Storage / signed URLs (opt) | 6 | — | |
 | Kubernetes & IaC (study only) | 6 | — | |
-| RAG end to end | 2–4 | built (eval still to come) | `app/ingest/`, `app/llm.py`, `app/retrieval.py`, `app/prompt.py`, `app/rag.py` |
+| RAG end to end | 2–4 | built (eval runner built; full run and grading pending) | `app/ingest/`, `app/llm.py`, `app/retrieval.py`, `app/prompt.py`, `app/rag.py` |
 | Vector DB choice (pgvector vs dedicated) | 3 | studied | DECISIONS.md, "Retrieval = top-5 by cosine similarity" |
 | TanStack Query, server vs client state | 5 | — | |
 | State management comparison | 5 | — | |
@@ -122,3 +122,21 @@ Partial means some of the topic exists; the pointer says which part.
   the document filter and its 404, the no-passages refusal without an LLM call, what the response
   contains (answer, refused, citations), and what fails where (422 / 404 / 502 after 3 attempts).
   Re-drill: say the numbers (5, 768, temperature 0, 3 attempts) and the failure at each step.
+- 2026-10-04, Phase 3 drill (5 questions, one at a time):
+  1. Table answer wrongly refused: correct (retrieval vs generation, decided by whether the passage
+     is in the citations; add the table-specific causes: a row split across chunks or read in a
+     scrambled cell order, and the model refusing over a passage it can't interpret).
+  2. Cosine distance and score: correct (precision: score 0 = perpendicular, i.e. unrelated;
+     score -1 = opposite; score 1 = same direction, not necessarily identical text).
+  3. Temperature 0 and pinned model: partial (right on both in outline; missed that temperature
+     works per token, not per answer; that without it the same question gives different answers
+     run to run so a grade can't be reproduced; and that the danger of an alias is that it changes
+     silently, with no code change on our side).
+  4. Retry budgets: partial (3 vs 6 attempts correct; the no-retry case was wrong: it is the
+     exhausted daily quota, a 429 whose requested wait exceeds our 60 s maximum, so we fail at once.
+     A cut-off answer is a different thing: a 200 response with finishReason MAX_TOKENS).
+  5. Releasing the DB connection before the LLM call: correct (add the knock-on effects: with the
+     connection held, only 10 questions could be in flight; the 11th waits, `/v1/health`'s 2 s ping
+     times out and reports 503 although nothing is broken, and `/v1/documents` stalls too).
+  Score: 3 correct, 2 partial. Re-drill: temperature/pinned model (why, in eval terms); the
+  quota fail-fast rule; query path with numbers and failure points.

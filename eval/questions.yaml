@@ -1,0 +1,309 @@
+# SpecSeek evaluation set: 20 questions.
+#
+# Where they come from (also stated in docs/EVAL.md):
+#   - 40 candidates were proposed by the AI assistant from the document text (eval/candidates.yaml);
+#     I chose these 20 on 2026-10-04. `source` is the candidate each one came from.
+#   - `verified` must be set to true by ME after checking `expected` against the PDF page.
+#     The runner warns about unverified questions; grading an unverified question is meaningless.
+#
+# Fields:
+#   id:        q01..q20
+#   source:    candidate id in eval/candidates.yaml
+#   type:      direct | table | cross_reference | unanswerable
+#   question:  what a user would type
+#   expected:  the correct answer (for unanswerable: "refusal")
+#   document:  NPR-7150.2D | NASA-STD-8739.8B | FDA-Premarket | FDA-OTS | none
+#   clause:    where the answer lives, as printed in the document; "none" for unanswerable
+#   page:      PDF page number (0 for unanswerable)
+#   verified:  false until I have checked it against the PDF
+
+questions:
+
+  - id: q01
+    source: c01
+    type: direct
+    question: >-
+      How thoroughly must safety-critical code be exercised by tests, and against which coverage
+      criterion?
+    expected: >-
+      100 percent code test coverage using the Modified Condition/Decision Coverage (MC/DC)
+      criterion, for all identified safety-critical software components. [SWE-219]
+    document: NPR-7150.2D
+    clause: "3.7.4"
+    page: 26
+    verified: false
+
+  - id: q02
+    source: c02
+    type: direct
+    question: >-
+      Is there an upper limit on how complex a safety-critical software component is allowed to
+      be?
+    expected: >-
+      Yes. A cyclomatic complexity value of 15 or lower. Any exceedance shall be reviewed and
+      waived with rationale by the project manager or technical approval authority. [SWE-220]
+    document: NPR-7150.2D
+    clause: "3.7.5"
+    page: 27
+    verified: false
+
+  - id: q03
+    source: c03
+    type: direct
+    question: >-
+      How many cost estimation models are needed for a Class A project expected to cost more than
+      two million dollars?
+    expected: >-
+      Two cost estimate models and associated cost parameters (for Class A and B software projects
+      with an estimated project cost of $2 million or more). [SWE-015]
+    document: NPR-7150.2D
+    clause: "3.2.1"
+    page: 23
+    verified: false
+
+  - id: q04
+    source: c04
+    type: direct
+    question: >-
+      Which kinds of projects are obliged to have independent verification and validation of their
+      software?
+    expected: >-
+      Projects reaching Key Decision Point A that are (a) Category 1 projects per NPR 7120.5, (b)
+      Category 2 projects per NPR 7120.5 with a Class A or Class B payload risk classification per
+      NPR 8705.4, or (c) projects selected explicitly by the Mission Directorate Associate
+      Administrator. [SWE-141]
+    document: NPR-7150.2D
+    clause: "3.6.2"
+    page: 25
+    verified: false
+
+  - id: q05
+    source: c12
+    type: table
+    question: >-
+      Which authority has to sign off on tailoring the CMMI rating requirement for software
+      developers?
+    expected: >-
+      HQ OCE and HQ OSMA (Authority column of the Requirements Mapping Matrix, row 3.9.2 /
+      SWE-032). Most other rows name "Center".
+    document: NPR-7150.2D
+    clause: "Appendix C, row 3.9.2 (SWE-032)"
+    page: 66
+    verified: false
+
+  - id: q06
+    source: c13
+    type: cross_reference
+    question: >-
+      A project has safety-critical software. Where are the safety-critical software requirements
+      it must implement?
+    expected: >-
+      In NASA-STD-8739.8 - the project manager shall implement the safety-critical software
+      requirements contained in NASA-STD-8739.8. [SWE-023]
+    document: NPR-7150.2D
+    clause: "3.7.2"
+    page: 26
+    verified: false
+
+  - id: q07
+    source: c15
+    type: direct
+    question: >-
+      What makes a piece of software count as safety-critical?
+    expected: >-
+      It is determined by and traceable to a hazard analysis, and meets at least one of - (a)
+      causes or contributes to a system hazardous condition/event, (b) controls functions
+      identified in a system hazard, (c) provides mitigation for a system hazardous
+      condition/event, (d) mitigates damage if a hazardous condition/event occurs, (e) detects,
+      reports, and takes corrective action if the system reaches a potentially hazardous state.
+    document: NASA-STD-8739.8B
+    clause: "4.2"
+    page: 20
+    verified: false
+
+  - id: q08
+    source: c16
+    type: direct
+    question: >-
+      In what ways must an IV&V team be independent of the project it examines?
+    expected: >-
+      Three parameters - technical independence, managerial independence, and financial
+      independence.
+    document: NASA-STD-8739.8B
+    clause: "4.4.1.2"
+    page: 52
+    verified: false
+
+  - id: q09
+    source: c17
+    type: direct
+    question: >-
+      Who writes the IV&V project execution plan, and who has to agree to it?
+    expected: >-
+      The IV&V provider shall develop and negotiate the IPEP with the project (4.4.2.2); the
+      Project SMA Technical Authority shall review and concur with it (4.4.2.3).
+    document: NASA-STD-8739.8B
+    clause: "4.4.2.2, 4.4.2.3"
+    page: 54
+    verified: false
+
+  - id: q10
+    source: c18
+    type: direct
+    question: >-
+      What are the successive levels at which the assurance standard's requirements get tailored?
+    expected: >-
+      Three levels - (a) the Software Classification Decision, (b) the project's Software
+      Requirements Mapping Matrix, (c) tailoring by the Software Assurance TA of the standard's
+      requirements that correspond to the project's mapping matrix.
+    document: NASA-STD-8739.8B
+    clause: "4.5"
+    page: 60
+    verified: false
+
+  - id: q11
+    source: c20
+    type: table
+    question: >-
+      What does software assurance have to do about cyclomatic complexity when a component exceeds
+      the limit?
+    expected: >-
+      Perform or analyze cyclomatic complexity metrics on all identified safety-critical
+      components and confirm a value of 15 or lower; if not, assure the developers provide a
+      technically acceptable risk assessment, accepted by the proper technical authority,
+      explaining why it must be higher than 15 and why the component cannot be restructured or why
+      reducing it is not justified.
+    document: NASA-STD-8739.8B
+    clause: "Table 1, row 3.7.5 (SWE-220)"
+    page: 31
+    verified: false
+
+  - id: q12
+    source: c22
+    type: cross_reference
+    question: >-
+      How does a project obtain relief from a requirement of the software assurance standard, and
+      who approves it?
+    expected: >-
+      Tailoring is documented as part of program/project requirements and approved by the
+      responsible Center Technical Authority per NPR 8715.3 (1.4), which points to section 4.5 -
+      there, the SMA TA for the project shall review and approve any tailored requirements.
+    document: NASA-STD-8739.8B
+    clause: "1.4 -> 4.5"
+    page: 6
+    verified: false
+
+  - id: q13
+    source: c23
+    type: direct
+    question: >-
+      What decides whether a device needs the more extensive level of software documentation?
+    expected: >-
+      Enhanced Documentation applies where a failure or flaw of any device software function could
+      present a hazardous situation with a probable risk of death or serious injury to a patient,
+      user, or others in the environment of use, assessed prior to implementation of risk control
+      measures. Otherwise Basic.
+    document: FDA-Premarket
+    clause: "V"
+    page: 12
+    verified: false
+
+  - id: q14
+    source: c26
+    type: table
+    question: >-
+      What testing evidence is expected at the higher documentation level on top of what the lower
+      level already asks for?
+    expected: >-
+      Unit and integration level test protocols including expected results, observed results,
+      pass/fail determination, and unit and integration level test reports.
+    document: FDA-Premarket
+    clause: "VI.H (Table 1)"
+    page: 16
+    verified: false
+
+  - id: q15
+    source: c28
+    type: direct
+    question: >-
+      What belongs in the record of software versions?
+    expected: >-
+      The history of tested software versions - date, version number, and a brief description of
+      all changes relative to the previously tested version. The last entry is the final version
+      to be released, including any differences between the tested and released version and an
+      assessment of their effect on safety and effectiveness.
+    document: FDA-Premarket
+    clause: "VI.I"
+    page: 30
+    verified: false
+
+  - id: q16
+    source: c31
+    type: direct
+    question: >-
+      What identifying details should be given for every third-party software component built into
+      a device?
+    expected: >-
+      Title and manufacturer; version level, release date, patch number and upgrade designation,
+      as appropriate; any OTS documentation that will be provided to the end user; why the OTS
+      software is appropriate for this device; and its expected design limitations.
+    document: FDA-OTS
+    clause: "III.A.1"
+    page: 7
+    verified: false
+
+  - id: q17
+    source: c32
+    type: direct
+    question: >-
+      What should a device do when it starts up and finds the wrong version of a third-party
+      component installed?
+    expected: >-
+      On startup the device should check that all software is the correct title, version level and
+      configuration; if the correct software is not loaded, it should warn the operator and shut
+      down to a safe state.
+    document: FDA-OTS
+    clause: "III.A.6"
+    page: 9
+    verified: false
+
+  - id: q18
+    source: c35
+    type: cross_reference
+    question: >-
+      How much testing documentation for a third-party component is expected, and what determines
+      that?
+    expected: >-
+      It depends on the Documentation Level (Basic or Enhanced) determined for the device under
+      the guidance "Content of Premarket Submissions for Device Software Functions"; the sponsor
+      should describe testing, verification and validation of the OTS software appropriate to its
+      hazards and provide the results. (The level criteria themselves are in the other guidance,
+      section V.)
+    document: FDA-OTS
+    clause: "III.A.5 -> FDA-Premarket V"
+    page: 8
+    verified: false
+
+  - id: q19
+    source: c37
+    type: unanswerable
+    question: >-
+      Which MISRA C rules are mandatory for flight software?
+    expected: >-
+      refusal
+    document: none
+    clause: "none"
+    page: 0
+    verified: false
+
+  - id: q20
+    source: c40
+    type: unanswerable
+    question: >-
+      What is the default heartbeat producer time in CANopen?
+    expected: >-
+      refusal
+    document: none
+    clause: "none"
+    page: 0
+    verified: false
