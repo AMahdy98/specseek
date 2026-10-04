@@ -9,6 +9,7 @@ from app.api.routes import get_provider
 from app.errors import ProviderError
 from app.main import app
 from app.prompt import REFUSAL, SYSTEM_PROMPT
+from app.rag import answer_question
 from tests.seeding import add_chunk, add_document, axis
 
 
@@ -207,3 +208,17 @@ async def test_invalid_requests_are_rejected_before_any_provider_call(api, db, b
     assert resp.status_code == 422
     assert resp.json()["error"]["code"] == "validation_error"
     assert llm.embed_calls == []
+
+
+async def test_a_supplied_query_vector_is_used_instead_of_embedding_again(api, db):
+    # The evaluation embeds each question once and reuses the vector for both strategies.
+    _, llm = api
+    await _seed(db)
+
+    result = await answer_question(
+        "Who assesses options?", app.state.pool, llm, strategy="naive", query_vector=axis(0)
+    )
+
+    assert llm.embed_calls == []
+    assert [chunk.content for chunk in result.sources] == ["naive window of text"]
+    assert result.refused is False

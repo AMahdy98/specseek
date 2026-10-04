@@ -32,11 +32,18 @@ async def answer_question(
     provider: Provider,
     strategy: Strategy = "section_aware",
     document_id: UUID | None = None,
+    query_vector: list[float] | None = None,
 ) -> QueryResult:
+    """Answer `question` from the ingested documents.
+
+    `query_vector` lets a caller that asks the same question several times (the evaluation,
+    once per chunking strategy) embed it once and pass the vector in.
+    """
     started = time.perf_counter()
 
     # 1. Embed the question (as a *query*, so it lands near passages that answer it).
-    (query_vector,) = await provider.embed([question], kind="query")
+    if query_vector is None:
+        (query_vector,) = await provider.embed([question], kind="query")
     embedded_at = time.perf_counter()
 
     # 2. Retrieve. The connection goes back to the pool before the slow LLM call.
