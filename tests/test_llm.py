@@ -203,3 +203,106 @@ async def test_missing_api_key_fails_without_any_network_call():
     provider, _ = _provider(handler, api_key="")
     with pytest.raises(ProviderError, match="not configured"):
         await provider.embed(["text"], kind="document")
+
+
+# ---------------------------------------------------------------- generation
+
+
+def _answer(text: str = "An answer.", finish: str = "STOP") -> dict:
+    return {"candidates": [{"content": {"parts": [{"text": text}]}, "finishReason": finish}]}
+
+
+async def test_generate_sends_system_instruction_prompt_and_temperature_zero():
+    seen: list[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen.append(request)
+        return httpx.Response(200, json=_answer("The provider shall assess [Doc, 4.4.2.9]."))
+
+    provider, _ = _provider(handler)
+    answer = await provider.generate("the rules", "passages and question")
+
+    assert answer == "The provider shall assess [Doc, 4.4.2.9]."
+    (request,) = seen
+    assert request.url.path.endswith("/models/gemini-3.8-flash:generateContent")
+    assert request.headers["x-goog-api-key"] == "test-key"
+    body = json.loads(request.content)
+    assert body["systemInstruction"] == {"parts": [{"text": "the rules"}]}
+    assert body["contents"] == [{"role": "user", "parts": [{"text": "passages and question"}]}]
+    assert body["generationConfig"]["temperature"] == 0
+
+
+async def test_generate_joins_multi_part_answers_and_strips_whitespace():
+    def handler(request: httpx.Request) -> httpx.Response:
+        parts = [{"text": "  First part. "}, {"text": "Second part.\n"}]
+        return httpx.Response(
+            200, json={"candidates": [{"content": {"parts": parts}, "finishReason": "STOP"}]}
+        )
+
+    provider, _ = _provider(handler)
+    assert await provider.generate("s", "p") == "First part. Second part."
+
+
+async def test_generate_with_no_candidates_is_a_provider_error():
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json={"promptFeedback": {"blockReason": "SAFETY"}})
+
+    provider, _ = _provider(handler)
+    with pytest.raises(ProviderError, match="no answer \\(SAFETY\\)"):
+        await provider.generate("s", "p")
+
+
+async def test_a_cut_off_answer_is_not_passed_off_as_complete():
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json=_answer("The provider shall", finish="MAX_TOKENS"))
+
+    provider, _ = _provider(handler)
+    with pytest.raises(ProviderError, match="cut off"):
+        await provider.generate("s", "p")
+
+
+async def test_an_empty_answer_is_a_provider_error():
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200, json={"candidates": [{"content": {}, "finishReason": "MAX_TOKENS"}]}
+        )
+
+    provider, _ = _provider(handler)
+    with pytest.raises(ProviderError, match="empty answer"):
+        await provider.generate("s", "p")
+
+
+async def test_interactive_calls_give_up_after_three_attempts():
+    # A person is waiting on /v1/query: two quick retries, then fail, not minutes of backoff.
+    calls = 0
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal calls
+        calls += 1
+        raise httpx.ReadTimeout("too slow", request=request)
+
+    provider, slept = _provider(handler)
+    with pytest.raises(ProviderError, match="after 3 attempts \\(ReadTimeout\\)"):
+        await provider.generate("s", "p")
+    assert calls == 3
+    assert slept == [2.0, 4.0]
+
+    calls = 0
+    with pytest.raises(ProviderError, match="after 3 attempts"):
+        await provider.embed(["a question"], kind="query")
+    assert calls == 3
+
+
+async def test_generate_recovers_from_one_overloaded_response():
+    calls = 0
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal calls
+        calls += 1
+        if calls == 1:
+            return httpx.Response(503, json={"error": {"message": "high demand"}})
+        return httpx.Response(200, json=_answer("ok"))
+
+    provider, slept = _provider(handler)
+    assert await provider.generate("s", "p") == "ok"
+    assert slept == [2.0]

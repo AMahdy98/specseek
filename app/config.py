@@ -18,6 +18,7 @@ class Settings:
     log_level: str
     data_dir: Path  # POST /v1/ingest may only read PDFs under this directory
     embedding_model: str
+    generation_model: str
     # repr=False: the key must never show up in a log line or a stack trace.
     gemini_api_key: str = field(repr=False)
 
@@ -30,5 +31,8 @@ def get_settings() -> Settings:
         log_level=os.environ.get("LOG_LEVEL", "info"),
         data_dir=Path(os.environ.get("DATA_DIR", "data")),
         embedding_model=os.environ.get("EMBEDDING_MODEL", "gemini-embedding-001"),
+        # A pinned model name, not an alias like "flash-latest": answers must not change
+        # under the evaluation without us choosing to change the model.
+        generation_model=os.environ.get("GENERATION_MODEL", "gemini-3.8-flash"),
         gemini_api_key=os.environ.get("GEMINI_API_KEY", ""),
     )
