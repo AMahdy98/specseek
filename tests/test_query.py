@@ -222,3 +222,14 @@ async def test_a_supplied_query_vector_is_used_instead_of_embedding_again(api, d
     assert llm.embed_calls == []
     assert [chunk.content for chunk in result.sources] == ["naive window of text"]
     assert result.refused is False
+
+
+async def test_stage_timings_are_exposed_in_the_server_timing_header(api, db):
+    client, _ = api
+    await _seed(db)
+
+    resp = await client.post("/v1/query", json={"question": "Who assesses options?"})
+
+    parts = dict(part.split(";dur=") for part in resp.headers["Server-Timing"].split(", "))
+    assert list(parts) == ["embed", "search", "generate"]
+    assert all(int(duration) >= 0 for duration in parts.values())

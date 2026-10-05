@@ -24,6 +24,7 @@ class QueryResult:
     answer: str
     refused: bool  # the model (or we) said the documents don't contain the answer
     sources: list[RetrievedChunk]  # the passages the model was given, best match first
+    timings_ms: dict[str, int]  # how long each stage took: embed, search, generate
 
 
 async def answer_question(
@@ -61,6 +62,11 @@ async def answer_question(
     generated_at = time.perf_counter()
 
     refused = REFUSAL.lower() in answer.lower()
+    timings_ms = {
+        "embed": round((embedded_at - started) * 1000),
+        "search": round((searched_at - embedded_at) * 1000),
+        "generate": round((generated_at - searched_at) * 1000),
+    }
     logger.info(
         "query_complete",
         extra={
@@ -73,9 +79,7 @@ async def answer_question(
             "chunks": len(chunks),
             "top_score": round(chunks[0].score, 4) if chunks else None,
             "refused": refused,
-            "embed_ms": round((embedded_at - started) * 1000),
-            "search_ms": round((searched_at - embedded_at) * 1000),
-            "generate_ms": round((generated_at - searched_at) * 1000),
+            **{f"{stage}_ms": duration for stage, duration in timings_ms.items()},
         },
     )
-    return QueryResult(answer=answer, refused=refused, sources=chunks)
+    return QueryResult(answer=answer, refused=refused, sources=chunks, timings_ms=timings_ms)

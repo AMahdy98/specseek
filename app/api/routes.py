@@ -115,10 +115,17 @@ SNIPPET_CHARS = 300
         502: {"model": ErrorResponse, "description": "Embedding or LLM provider failed"},
     },
 )
-async def query(body: QueryRequest, pool: PoolDep, provider: ProviderDep) -> QueryResponse:
+async def query(
+    body: QueryRequest, response: Response, pool: PoolDep, provider: ProviderDep
+) -> QueryResponse:
     """Answer a question from the ingested documents, with the passages used as sources."""
     result = await answer_question(
         body.question, pool, provider, strategy=body.strategy, document_id=body.document_id
+    )
+    # Server-Timing is the standard HTTP header for exactly this: browsers show it in the
+    # network panel, and the load test reads it, without changing the JSON body.
+    response.headers["Server-Timing"] = ", ".join(
+        f"{stage};dur={duration}" for stage, duration in result.timings_ms.items()
     )
     return QueryResponse(
         answer=result.answer,
