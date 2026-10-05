@@ -211,6 +211,11 @@ Auth, multi-user, rerankers, hybrid/BM25 search, conversation memory, streaming 
   **Next:** finish the Phase 4 drill; then decide: optional backend items (token-bucket limiter at 15/min, answer cache,
   ETag) or straight to Phase 5 (React UI). Backend + eval hard stop was one week from 2026-09-29.
 
+- **2026-10-06, session 7:** Phase 4 drill done: 1 correct, 4 partial (logged in TOPICS.md with re-drill items:
+  p95 by rank, blocking-call staircase, limits of the latency claim, eval result in counts). **Phase 4 is complete.**
+  **Next:** user decides: optional backend items (token-bucket limiter at 15/min, answer cache, ETag) or straight to
+  Phase 5 (React UI). Recommendation given: go to Phase 5; the one-week backend stop (from 2026-09-29) has passed.
+
 ## First session
 1. Save this brief to `CLAUDE.md`.
 2. Ask me, in one message: whether Docker (and which setup), uv, Node and gcloud are already installed in WSL; which LLM/embedding API keys I have; which standards PDFs I already have access to. Then verify with commands (`docker --version`, `uv --version`, `node -v`, `which python3`) instead of taking my word for it.

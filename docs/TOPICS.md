@@ -140,3 +140,22 @@ Partial means some of the topic exists; the pointer says which part.
      times out and reports 503 although nothing is broken, and `/v1/documents` stalls too).
   Score: 3 correct, 2 partial. Re-drill: temperature/pinned model (why, in eval terms); the
   quota fail-fast rule; query path with numbers and failure points.
+- 2026-10-05/06, Phase 4 drill (5 questions, one at a time):
+  1. "Section-aware is 22 points better, ship it": partial (right: 20 questions and one grader give
+     no confidence interval; missed: say counts, 14 vs 10 of 18, a gap of 4 questions; it is a paired
+     comparison, so name which questions flipped and why; one corpus/model/prompt; the larger
+     context section-aware sends. Per-type breakdown is a second sentence: the slices are 3 questions).
+  2. Why `--resume` refuses a changed model: correct (model, prompt version, top-k; add: mixing
+     models confounds the one variable under test; say "retrieved passages", not "citations").
+  3. Which measurement is p95 of 24, and why not the average: partial (why-half correct; missed:
+     nearest-rank, ceil(0.95 × 24) = 23rd smallest, i.e. the second-slowest request, always an
+     observed value; one retry outlier drags a mean but not a median).
+  4. Six concurrent requests in 2 s, not 8: partial (right direction; missed the mechanism: waits
+     overlap on one thread; a blocking call serializes them into a staircase 1.3 s … 8 s and
+     freezes `/v1/health` too; same bug as blocking I/O on the epoll thread).
+  5. Why the latency test was paced: partial (right cause: the provider's 15 requests/minute;
+     missed what cannot be claimed: throughput, behaviour under heavy load, the breaking point,
+     and that beyond 15/min the test would measure 429s and retries, not SpecSeek).
+  Score: 1 correct, 4 partial. Pattern: the first half of a two-part question is answered, the
+  second half is dropped. Re-drill: p95 by rank; the blocking-call staircase; limits of the
+  latency claim; stating the eval result in counts.
