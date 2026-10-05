@@ -19,7 +19,7 @@ Partial means some of the topic exists; the pointer says which part.
 | Rate limiting, token bucket (opt) | 3 | — (optional; not built) | |
 | LLM response cache (opt) | 3 | — (optional; not built) | |
 | Observability: JSON logs, request ID, stage timing | 1, 3 | built | `app/logging_config.py`, `app/api/middleware.py`; `query_complete` (embed/search/generate ms) in `app/rag.py`, `ingest_complete` in `app/ingest/service.py` |
-| Performance: p50/p95, slow-endpoint checklist | 4 | — | `docs/PERF.md` |
+| Performance: p50/p95, slow-endpoint checklist | 4 | built | `eval/load_test.py`, `docs/PERF.md` (measured p50 1.30 s / p95 2.05 s; checklist walked on real data) |
 | Graceful shutdown / lifespan | 1 | built | `app/main.py:lifespan`, Dockerfile `exec` CMD; verified exit code 0 on `docker compose stop` |
 | Event loop / asyncio, `run_in_executor` | 0, 2 | built | `app/ingest/service.py`: hashing, parsing, chunking via `asyncio.to_thread` |
 | Dependency injection | 0 | built | `app/api/routes.py` (`get_pool`, `get_provider`, `get_repository`), fakes in `tests/conftest.py`, `tests/test_ingest.py` |

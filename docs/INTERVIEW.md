@@ -105,8 +105,10 @@ Every request, before and after the route (`app/api/middleware.py:RequestContext
 | Eval scores (my final grades, 2026-10-05, 20 questions, `gemini-3.5-flash-lite`) | section-aware: 14 correct, 2 partial, 2 wrong, 2 correctly refused · naive: 10 correct, 3 partial, 5 wrong, 2 correctly refused. Answerable only: 78% vs 56% (14 vs 10 of 18) |
 | Eval failures | 12 answers not fully correct (8 naive, 4 section-aware): 9 retrieval/chunking, 2 refusals over text that was present, 1 fabricated citation. No false statement about a requirement |
 | Eval grading | by me, by hand; a review changed 2 of 40 grades (first pass was 15 vs 11) |
-| Query latency (9 real questions, not a load test) | embed 0.3–0.5 s · vector search 2–3 ms · generation 3–23 s (long ones include a retry or provider wait). p50/p95: not measured yet (Phase 4) |
-| Cost per query | not measured |
+| Query latency (measured 2026-10-05, 24 sequential requests, `gemini-3.5-flash-lite`) | **p50 1.30 s, p95 2.05 s**. Stages p50: embed 283 ms, search 2 ms, generate 980 ms. Share: generate 77%, embed 23%, search 0.2%, everything else about 3 ms |
+| Latency under concurrency | 6 simultaneous requests: p50 1.69 s, all done within 2.04 s (sequentially they would take about 8 s) |
+| Prompt size (from the eval run) | retrieved context per question: naive always 2,560 chars; section-aware median 3,626, max 13,792 |
+| Cost per query | money: zero on the free tier, not measured for paid. Quota: 1 embedding (1,000/day) + 1 generation (500/day, 15/min). Roughly 1,200 tokens in, 100 out for a median section-aware query (estimated at 4 chars/token) |
 | Docker image size | 371 MB (`docker image ls`, 2026-10-02, after adding PyMuPDF and numpy via pgvector). Was 274 MB before the ingestion dependencies |
 
 ## 5. Decisions
@@ -140,6 +142,7 @@ See `DECISIONS.md`. Short form so far:
 - Eval-proven weaknesses: an answer spread over two short clauses can lose its second half (q09); FDA section VI is chunked too coarsely (q15); table rows lose their column labels (q05).
 - Near-duplicate chunks can fill the context (the same requirement appears in NPR's body, its Appendix C matrix and NASA-STD's Table 1); there is no deduplication or reranking.
 - No relevance floor yet: the LLM is called even when the best match is weak.
+- Latency was measured at low volume only (36 requests, max 6 at once); 99.7% of it is provider time, so it will move with the provider.
 - `citations` lists every passage given to the model, not only the ones it actually cited.
 - Ingest is synchronous: minutes per document on the free tier. The scalable design is 202 + queue + worker.
 - The whole corpus (1,596 texts) exceeds one day of free embedding quota, so a full re-ingest takes two days on the free tier.
@@ -179,6 +182,14 @@ See `DECISIONS.md`. Short form so far:
   A: Not statistically: it is four questions, one run, one grader. I present it as a direction. What I trust more is the failure analysis: for each wrong answer I checked whether the expected text was in the five passages the model received.
 - Follow-up: Where did your better strategy lose?
   A: q09: "who writes the plan and who approves it" spans two consecutive clauses. One-chunk-per-clause retrieved the first only; the naive window happened to hold both. The fix I'd try first is passing the neighbouring clause along with a hit.
+
+**Performance**
+- Q: How fast is it, and where does the time go?
+  A: Measured p50 1.3 s and p95 2.0 s per question. 77% is the LLM call, 23% the embedding call, the vector search is 2 ms, and everything I wrote adds about 3 ms. Each response carries a `Server-Timing` header with the three stages.
+- Follow-up: An endpoint is slow. How do you debug it?
+  A: Measure first: which stage? Then: every request or just the tail; client/network vs server; is the event loop blocked (do concurrent requests serialize?); database plan and pool waits; third-party calls; payload size; can it be cached. On my data the answer is step six: it is the provider.
+- Follow-up: How would you make it faster?
+  A: Cache answers for repeated questions, then cache question embeddings; shorter context only if the evaluation shows quality holds. Streaming would improve perceived latency, not total time.
 
 ## 9. Concept answers
 

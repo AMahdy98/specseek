@@ -353,6 +353,19 @@ Format: **Decision** / Alternative rejected / Why. Only choices actually made go
 - Kept: section-aware as the default strategy of `/v1/query`.
 - Not changed yet: the six improvements listed in EVAL.md. None is claimed until re-measured.
 
+## 2026-10-05: Stage timings in a `Server-Timing` response header
+- `POST /v1/query` returns `Server-Timing: embed;dur=…, search;dur=…, generate;dur=…`.
+- **Rejected:** a `timings` field in the JSON body (changes the API contract for a diagnostic);
+  **rejected:** reading server logs from the load script (couples the test to log access).
+  The header is a web standard, shows up in the browser's network panel, and costs nothing.
+
+## 2026-10-05: Latency test is paced, not a stress test
+- 24 sequential requests at one per 5 s, then two bursts of 6 after 65 s pauses: always under
+  the provider's 15 requests/minute. **Rejected:** a high-rate load tool (k6, Locust): a new
+  dependency, and beyond 15/min it would measure the provider's throttling.
+- Percentiles are nearest-rank, so every reported number is an observed latency.
+- Result (PERF.md): p50 1.30 s, p95 2.05 s; 77% generate, 23% embed, 0.2% search.
+
 ## Future work (explicitly out of scope)
 - Token-bucket rate limiter and LLM response cache on `/v1/query` (optional items, not built yet).
 - **User accounts and saved chats per user** (requested 2026-10-03; auth, multi-user and

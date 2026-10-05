@@ -203,6 +203,14 @@ Auth, multi-user, rerankers, hybrid/BM25 search, conversation memory, streaming 
   **Next:** latency work (stage timings in the `/v1/query` response, paced load script ≤15 req/min, `docs/PERF.md`,
   slow-endpoint checklist), then the Phase 4 five-question drill.
 
+- **2026-10-05, session 6 (latency):** `Server-Timing` header on `/v1/query` (stage timings), `eval/load_test.py` (paced,
+  nearest-rank percentiles), 140 tests green. Measured on `gemini-3.5-flash-lite`, 24 sequential requests: **p50 1.30 s,
+  p95 2.05 s**; generate 77%, embed 23%, search 0.2%; 6 concurrent: p50 1.69 s, all within 2.04 s; 36/36 OK.
+  `docs/PERF.md` written (results, slow-endpoint checklist on real data, untested connection-reuse hypothesis).
+  Phase 4 is complete except the five-question drill (in progress, asked one at a time).
+  **Next:** finish the Phase 4 drill; then decide: optional backend items (token-bucket limiter at 15/min, answer cache,
+  ETag) or straight to Phase 5 (React UI). Backend + eval hard stop was one week from 2026-09-29.
+
 ## First session
 1. Save this brief to `CLAUDE.md`.
 2. Ask me, in one message: whether Docker (and which setup), uv, Node and gcloud are already installed in WSL; which LLM/embedding API keys I have; which standards PDFs I already have access to. Then verify with commands (`docker --version`, `uv --version`, `node -v`, `which python3`) instead of taking my word for it.
