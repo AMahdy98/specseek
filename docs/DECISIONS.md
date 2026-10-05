@@ -334,7 +334,24 @@ Format: **Decision** / Alternative rejected / Why. Only choices actually made go
   a run if the generation model, embedding model, prompt version or top-k differ from the run's
   recorded settings. **Rejected:** finishing the remaining questions with a different model:
   the two strategies would no longer be compared under the same conditions.
-- Generation model choice for the rest of the project: **open** (see CLAUDE.md status).
+- Generation model choice: decided the same day, see the next entry.
+
+## 2026-10-05: Generation model = `gemini-3.5-flash-lite` (project default)
+- Free-tier limits as I read them on my usage page: 500 requests/day, 15 per minute.
+- **Rejected:** `gemini-3.8-flash`: stronger, but 20 requests/day cannot carry a 40-call eval, a
+  latency test or a public demo. The evaluation was re-run in full on the new model; the earlier
+  partial run is kept but not counted.
+- Trade-off accepted: a lighter model. One untested hint that it matters: in a single trial,
+  `gemini-3.8-flash` answered q05 (a table row) from the same retrieved row that
+  `gemini-3.5-flash-lite` refused in the graded run. One sample, not a comparison.
+- The default in `app/config.py` is this model, so the code, the eval and a deployment agree.
+
+## 2026-10-05: Evaluation result and what it changed
+- My final grades: section-aware 14 correct / 2 partial / 2 wrong, naive 10 / 3 / 5, on 18
+  answerable questions; both refused both unanswerable ones (first pass: 15 vs 11; a review
+  changed two grades). Details and caveats in EVAL.md.
+- Kept: section-aware as the default strategy of `/v1/query`.
+- Not changed yet: the six improvements listed in EVAL.md. None is claimed until re-measured.
 
 ## Future work (explicitly out of scope)
 - Token-bucket rate limiter and LLM response cache on `/v1/query` (optional items, not built yet).

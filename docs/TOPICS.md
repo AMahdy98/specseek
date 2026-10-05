@@ -33,7 +33,7 @@ Partial means some of the topic exists; the pointer says which part.
 | Cloud Run (scale to zero, cold starts, timeouts, SIGTERM) | 6 | — | |
 | Cloud Storage / signed URLs (opt) | 6 | — | |
 | Kubernetes & IaC (study only) | 6 | — | |
-| RAG end to end | 2–4 | built (eval runner built; full run and grading pending) | `app/ingest/`, `app/llm.py`, `app/retrieval.py`, `app/prompt.py`, `app/rag.py` |
+| RAG end to end | 2–4 | built and evaluated (EVAL.md) | `app/ingest/`, `app/llm.py`, `app/retrieval.py`, `app/prompt.py`, `app/rag.py` |
 | Vector DB choice (pgvector vs dedicated) | 3 | studied | DECISIONS.md, "Retrieval = top-5 by cosine similarity" |
 | TanStack Query, server vs client state | 5 | — | |
 | State management comparison | 5 | — | |

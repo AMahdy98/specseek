@@ -23,7 +23,10 @@ Around that core it's an ordinary production-style service: FastAPI, async end t
 one error format, JSON logs with a request ID, an idempotent ingest endpoint, and cursor
 pagination. I wrote the pipeline myself instead of using LangChain so I can explain every step."
 
-_(Add the eval result sentence after Phase 4; do not quote scores before they exist.)_
+Eval sentence to add when speaking: "On my 20-question set, graded by hand, the section-aware
+strategy got 14 of 18 answerable questions right and the naive one 10; both refused the two
+questions that weren't in the documents. It's a small set, so I treat that as a direction, not a
+proof, and I can tell you exactly why each failure happened."
 
 ## 2. Architecture
 ```mermaid
@@ -34,7 +37,7 @@ flowchart LR
     DB[("db container<br/>Postgres 16 + pgvector<br/>documents, chunks(vector 768)")]
     API -->|"psycopg async pool"| DB
   end
-  API -->|"HTTPS (httpx)<br/>embed + generate"| Gemini["Gemini API<br/>gemini-embedding-001<br/>gemini-3.8-flash"]
+  API -->|"HTTPS (httpx)<br/>embed + generate"| Gemini["Gemini API<br/>gemini-embedding-001<br/>gemini-3.5-flash-lite"]
   PDFs["data/public/*.pdf"] -.->|"read-only mount"| API
 ```
 
@@ -95,11 +98,13 @@ Every request, before and after the route (`app/api/middleware.py:RequestContext
 | Vector search (measured, 901 chunks) | top-5 via HNSW index 0.5 ms; exact scan 3.4 ms; filtered by strategy 1.6 ms (planner uses an exact scan) |
 | DB pool | min 1 / max 10 connections, 2 s acquire timeout for health |
 | Top-k | 5, by cosine similarity (`<=>`), per chunking strategy |
-| Generation | `gemini-3.8-flash`, temperature 0, max 2048 output tokens, prompt version v1 |
+| Generation | `gemini-3.5-flash-lite`, temperature 0, max 2048 output tokens, prompt version v1. Free tier: 500 requests/day, 15/minute (`gemini-3.8-flash` was dropped: 20/day) |
 | Corpus size | 4 public documents, 225 pages → 956 naive chunks, 640 section-aware chunks (measured 2026-10-02 by running the chunkers; not yet in the DB) |
 | Per document (pages → naive / section-aware) | NASA-STD-8739.8B: 70 → 281 / 209 · NPR 7150.2D: 89 → 354 / 341 · FDA Premarket: 46 → 219 / 49 · FDA Off-The-Shelf: 20 → 102 / 41 |
 | Parse time | 134–357 ms per document on my machine; chunking under 4 ms |
-| Eval scores | not measured |
+| Eval scores (my final grades, 2026-10-05, 20 questions, `gemini-3.5-flash-lite`) | section-aware: 14 correct, 2 partial, 2 wrong, 2 correctly refused · naive: 10 correct, 3 partial, 5 wrong, 2 correctly refused. Answerable only: 78% vs 56% (14 vs 10 of 18) |
+| Eval failures | 12 answers not fully correct (8 naive, 4 section-aware): 9 retrieval/chunking, 2 refusals over text that was present, 1 fabricated citation. No false statement about a requirement |
+| Eval grading | by me, by hand; a review changed 2 of 40 grades (first pass was 15 vs 11) |
 | Query latency (9 real questions, not a load test) | embed 0.3–0.5 s · vector search 2–3 ms · generation 3–23 s (long ones include a retry or provider wait). p50/p95: not measured yet (Phase 4) |
 | Cost per query | not measured |
 | Docker image size | 371 MB (`docker image ls`, 2026-10-02, after adding PyMuPDF and numpy via pgvector). Was 274 MB before the ingestion dependencies |
@@ -131,7 +136,8 @@ See `DECISIONS.md`. Short form so far:
 
 ## 7. Known limitations
 - Schema can only be created, not migrated.
-- The free-tier LLM is often busy: `gemini-3.8-flash` returned "503 high demand" on about 1 in 3 calls in my first runs; `/v1/query` retries twice, then returns 502.
+- Free-tier limits shape everything: 1,000 embeddings/day, and for the LLM 500 requests/day and 15/minute. `/v1/query` retries twice on a busy provider, then returns 502. There is no rate limiter of our own yet.
+- Eval-proven weaknesses: an answer spread over two short clauses can lose its second half (q09); FDA section VI is chunked too coarsely (q15); table rows lose their column labels (q05).
 - Near-duplicate chunks can fill the context (the same requirement appears in NPR's body, its Appendix C matrix and NASA-STD's Table 1); there is no deduplication or reranking.
 - No relevance floor yet: the LLM is called even when the best match is weak.
 - `citations` lists every passage given to the model, not only the ones it actually cited.
@@ -165,4 +171,59 @@ See `DECISIONS.md`. Short form so far:
   A: The refusal is a fixed sentence, so code detects it by string match and returns `refused: true`. With zero retrieved passages the service refuses without calling the LLM at all.
 - Follow-up: What about a malicious document that says "ignore your instructions"?
   A: The prompt tells the model passages are reference material, not instructions, and they are sent as user content, separate from the system instruction. That reduces the risk; it does not eliminate it. I'd say so rather than claim it's solved.
+
+**Evaluation**
+- Q: How do you know it works?
+  A: A 20-question set with expected answers and clause references, run against both chunking strategies with everything else held constant, graded by hand. Section-aware: 14 of 18 answerable correct; naive: 10 of 18; both refused both unanswerable questions.
+- Follow-up: Is that difference significant?
+  A: Not statistically: it is four questions, one run, one grader. I present it as a direction. What I trust more is the failure analysis: for each wrong answer I checked whether the expected text was in the five passages the model received.
+- Follow-up: Where did your better strategy lose?
+  A: q09: "who writes the plan and who approves it" spans two consecutive clauses. One-chunk-per-clause retrieved the first only; the naive window happened to hold both. The fix I'd try first is passing the neighbouring clause along with a hit.
+
+## 9. Concept answers
+
+### What is RAG, why use it, and what are the alternatives?
+**What it is (one sentence).** Retrieval-augmented generation: before asking a language model a
+question, fetch the passages most relevant to it from your own documents and put them in the
+prompt, so the model answers from that text instead of from its memory.
+
+**The problem it solves.** A language model on its own:
+- knows only what was in its training data, up to a cutoff date, and nothing private;
+- cannot tell you where a statement came from;
+- fills gaps with fluent guesses (hallucination), which is unacceptable for requirements text where
+  "shall" versus "should" matters.
+
+**How it works (the three steps in SpecSeek).**
+1. *Index, once:* split documents into chunks, turn each into a vector with an embedding model,
+   store vector + text + metadata (Postgres + pgvector).
+2. *Retrieve, per question:* embed the question, take the 5 nearest chunks by cosine similarity.
+3. *Generate:* give the model those 5 passages with rules: answer only from them, cite the clause,
+   or reply with a fixed refusal sentence.
+
+**Why use it.**
+- **Grounding and citations:** every answer points at a clause a human can open and check.
+- **Freshness without retraining:** add or replace a document by re-ingesting it; minutes, not a
+  training job.
+- **Honest refusal:** "not in these documents" is a detectable outcome (both unanswerable eval
+  questions were refused).
+- **Cost and control:** you send 5 passages per question, not the whole library, and you decide
+  which documents are searchable (the basis for per-user access later).
+
+**Alternatives, and when each is the better choice.**
+| Alternative | What it is | Better than RAG when | Why not here |
+|---|---|---|---|
+| Model alone | Ask the LLM directly | General knowledge, no need for sources | No citations, may be outdated or invented |
+| Long-context "stuffing" | Put the whole corpus in every prompt | The corpus is small and stable (ours, 225 pages, would fit a 1M-token window) and cost/latency per question don't matter | Every question pays for all 225 pages; quality drops for facts buried mid-context; stops working when the corpus outgrows the window. Honest answer: for a corpus this size it is a real option, especially with prompt caching |
+| Fine-tuning | Train the model further on your documents | You need a style, format or skill, not facts | Facts are not reliably memorised, there are no citations, and every document change means retraining |
+| Keyword search (BM25) | Classic search engine, no LLM | Users search exact terms, part numbers, IDs | Misses paraphrases ("third-party" vs "off-the-shelf"); returns documents, not answers. Combining it with vectors (hybrid search) is the usual next step |
+| Structured query | Facts in tables, queried with SQL (optionally text-to-SQL) | The questions are about structured data: counts, filters, joins | Standards are prose |
+| Agentic search | The model decides what to search, reads, searches again | Multi-step questions needing several lookups | More calls, more latency, harder to evaluate; a later step, not a first one |
+
+**Where RAG fails (so I can say it before I'm asked).** It is only as good as retrieval: if the
+right passage is not in the top 5, or arrives cut in half, the model cannot answer. In my
+evaluation 9 of 12 failures were exactly that, and none was the model inventing a requirement.
+That is why most of the work in this project went into chunking, not into the prompt.
+
+**One-line version.** "RAG lets a model answer from my documents with citations, and update by
+re-indexing instead of retraining; its weak point is retrieval, which is why I evaluated chunking."
 

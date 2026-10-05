@@ -187,6 +187,22 @@ Auth, multi-user, rerankers, hybrid/BM25 search, conversation memory, streaming 
   **Open decision (user):** (A) resume the same run after the quota resets (17 answers left, fits in one day), or
   (B) pick a higher-limit model as the project default and re-run all 40 with it. Nothing graded yet.
 
+- **2026-10-05, session 6 (cont.):** User chose `gemini-3.5-flash-lite` (500 req/day, 15/min); it is now the code default.
+  Full eval run `eval/runs/20261005T121102Z` (40 answers) graded by the user: section-aware 15 correct / 1 partial /
+  2 wrong, naive 11 / 2 / 5, both refused both unanswerable. EVAL.md is filled (results, failure table with evidence,
+  limitations) and lists 6 review flags Claude raised at the user's request; **grades were not changed by Claude**.
+  INTERVIEW.md gained section 9 (what RAG is / why / alternatives), eval numbers and an evaluation ladder.
+  **Next:** (1) user decides on the review flags (q11 naive, q12 section-aware → partial?) and, if changed, re-tabulate
+  and update EVAL.md/INTERVIEW.md numbers. (2) Latency: add stage timings to the `/v1/query` response (e.g. a
+  `Server-Timing` header), build the paced load script (≤15 req/min), write `docs/PERF.md`, walk the slow-endpoint
+  checklist. (3) Phase 4 five-question drill. Optional before deploy: token-bucket rate limiter (15/min is the number).
+
+- **2026-10-05, session 6 (end):** User revised grades after the review: q11 naive and q12 section-aware → partial; q07 kept.
+  **Final eval: section-aware 14 correct / 2 partial / 2 wrong, naive 10 / 3 / 5, both refused 2/2.** EVAL.md, INTERVIEW.md
+  and DECISIONS.md carry these numbers (any older 15-vs-11 mention is the first pass, recorded as such in EVAL.md).
+  **Next:** latency work (stage timings in the `/v1/query` response, paced load script ≤15 req/min, `docs/PERF.md`,
+  slow-endpoint checklist), then the Phase 4 five-question drill.
+
 ## First session
 1. Save this brief to `CLAUDE.md`.
 2. Ask me, in one message: whether Docker (and which setup), uv, Node and gcloud are already installed in WSL; which LLM/embedding API keys I have; which standards PDFs I already have access to. Then verify with commands (`docker --version`, `uv --version`, `node -v`, `which python3`) instead of taking my word for it.
