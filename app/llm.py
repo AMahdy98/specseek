@@ -49,7 +49,7 @@ class GeminiProvider:
         api_key: str,
         client: httpx.AsyncClient,
         embedding_model: str = "gemini-embedding-001",
-        generation_model: str = "gemini-3.8-flash",
+        generation_model: str = "gemini-3.5-flash-lite",
         sleep: Callable[[float], Awaitable[None]] = asyncio.sleep,  # injectable for tests
     ) -> None:
         self._api_key = api_key

@@ -224,7 +224,7 @@ async def test_generate_sends_system_instruction_prompt_and_temperature_zero():
 
     assert answer == "The provider shall assess [Doc, 4.4.2.9]."
     (request,) = seen
-    assert request.url.path.endswith("/models/gemini-3.8-flash:generateContent")
+    assert request.url.path.endswith("/models/gemini-3.5-flash-lite:generateContent")
     assert request.headers["x-goog-api-key"] == "test-key"
     body = json.loads(request.content)
     assert body["systemInstruction"] == {"parts": [{"text": "the rules"}]}
