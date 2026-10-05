@@ -324,6 +324,18 @@ Format: **Decision** / Alternative rejected / Why. Only choices actually made go
 - `pyyaml` added as a *dev* dependency to read the question file (implied by the brief's
   `questions.yaml`; it was already installed transitively through `uvicorn[standard]`).
 
+## 2026-10-05: Free-tier generation limit found: 20 requests/day for `gemini-3.8-flash`
+- Measured from the 429 body (`GenerateRequestsPerDayPerProjectPerModel-FreeTier`, limit 20).
+  The eval needs 40 generations, so the first full run stopped at 23 answers.
+- Quotas are per model. Models that answered on this key on 2026-10-05: `gemini-3.1-flash-lite`,
+  `gemini-3.5-flash`, `gemini-3.5-flash-lite`, `gemini-3.6-flash`, `gemini-3.7-flash`. Their
+  daily limits are not known to me (the API only reveals a limit when it is exceeded).
+- Rule adopted: one eval run = one generation model. `run_eval --resume` now refuses to continue
+  a run if the generation model, embedding model, prompt version or top-k differ from the run's
+  recorded settings. **Rejected:** finishing the remaining questions with a different model:
+  the two strategies would no longer be compared under the same conditions.
+- Generation model choice for the rest of the project: **open** (see CLAUDE.md status).
+
 ## Future work (explicitly out of scope)
 - Token-bucket rate limiter and LLM response cache on `/v1/query` (optional items, not built yet).
 - **User accounts and saved chats per user** (requested 2026-10-03; auth, multi-user and

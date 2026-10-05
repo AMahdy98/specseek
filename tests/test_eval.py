@@ -12,6 +12,7 @@ from eval.run_eval import (
     grades_template,
     grading_sheet,
     load_questions,
+    settings_mismatch,
     tabulate,
 )
 
@@ -151,3 +152,18 @@ def test_tabulate_reports_ungraded_and_rejects_unknown_grades():
     assert "| naive | 0 | 0 | 0 | 0 | 1 |" in tabulate([{"id": "q01", "naive": None}], _run())
     with pytest.raises(ValueError, match="unknown grade"):
         tabulate([{"id": "q01", "naive": "great", "section_aware": "correct"}], _run())
+
+
+def test_resuming_with_a_different_model_or_prompt_is_detected():
+    meta = {
+        "generation_model": "gemini-3.8-flash",
+        "embedding_model": "gemini-embedding-001",
+        "prompt_version": "v1",
+        "top_k": 5,
+    }
+    assert settings_mismatch(meta, dict(meta)) == []
+    changed = {**meta, "generation_model": "gemini-3.5-flash-lite", "prompt_version": "v2"}
+    assert settings_mismatch(meta, changed) == [
+        "generation_model: run has 'gemini-3.8-flash', current is 'gemini-3.5-flash-lite'",
+        "prompt_version: run has 'v1', current is 'v2'",
+    ]

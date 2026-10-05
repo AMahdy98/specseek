@@ -180,6 +180,13 @@ Auth, multi-user, rerankers, hybrid/BM25 search, conversation memory, streaming 
   then Claude tabulates, fills EVAL.md from the real numbers, and builds the p50/p95 load script (`docs/PERF.md`). Then build `eval/run_eval.py` (both strategies, reuse one query embedding per question, re-ask on
   502, save raw answers under `eval/runs/`), user grades manually, fill `docs/EVAL.md`; then the p50/p95 load script.
 
+- **2026-10-05, session 6:** User verified all 20 questions and ran the eval: run `eval/runs/20261004T184355Z`
+  has 23 of 40 answers (12 questions started), all with `gemini-3.8-flash`, then hit that model's free-tier limit of
+  **20 generations/day**. Other models answer on the key (3.1-flash-lite, 3.5-flash, 3.5-flash-lite, 3.6-flash,
+  3.7-flash; daily limits unknown). `run_eval --resume` now refuses a run whose model/prompt/top-k differ (132 tests).
+  **Open decision (user):** (A) resume the same run after the quota resets (17 answers left, fits in one day), or
+  (B) pick a higher-limit model as the project default and re-run all 40 with it. Nothing graded yet.
+
 ## First session
 1. Save this brief to `CLAUDE.md`.
 2. Ask me, in one message: whether Docker (and which setup), uv, Node and gcloud are already installed in WSL; which LLM/embedding API keys I have; which standards PDFs I already have access to. Then verify with commands (`docker --version`, `uv --version`, `node -v`, `which python3`) instead of taking my word for it.

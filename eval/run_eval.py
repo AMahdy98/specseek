@@ -178,6 +178,19 @@ def tabulate(grades: list[dict], run: dict) -> str:
     return "\n".join(lines) + "\n"
 
 
+def settings_mismatch(meta: dict, current: dict) -> list[str]:
+    """What differs between a saved run and the configuration we would continue it with.
+
+    A run is only a fair comparison if every answer came from the same models, prompt and
+    top-k. Resuming with anything different would silently mix two experiments.
+    """
+    return [
+        f"{key}: run has {meta.get(key)!r}, current is {current[key]!r}"
+        for key in ("generation_model", "embedding_model", "prompt_version", "top_k")
+        if meta.get(key) != current[key]
+    ]
+
+
 # ---------------------------------------------------------------- running
 
 
@@ -279,11 +292,24 @@ def command_run(args: argparse.Namespace) -> int:
         wanted = set(args.only.split(","))
         questions = [q for q in questions if q["id"] in wanted]
 
+    settings = get_settings()
+    current = {
+        "generation_model": settings.generation_model,
+        "embedding_model": settings.embedding_model,
+        "prompt_version": PROMPT_VERSION,
+        "top_k": TOP_K,
+    }
     if args.resume:
         run_path = Path(args.resume)
         run = json.loads(run_path.read_text(encoding="utf-8"))
+        differences = settings_mismatch(run["meta"], current)
+        if differences:
+            print("REFUSING to resume: this would mix two configurations in one run.")
+            for difference in differences:
+                print(f"  {difference}")
+            print("Start a new run instead (omit --resume), or restore the original settings.")
+            return 4
     else:
-        settings = get_settings()
         stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
         RUNS_DIR.mkdir(exist_ok=True)
         run_path = RUNS_DIR / f"{stamp}.json"
@@ -291,10 +317,7 @@ def command_run(args: argparse.Namespace) -> int:
             "meta": {
                 "started_at": stamp,
                 "git_commit": _git_commit(),
-                "prompt_version": PROMPT_VERSION,
-                "top_k": TOP_K,
-                "embedding_model": settings.embedding_model,
-                "generation_model": settings.generation_model,
+                **current,
                 "strategies": list(STRATEGIES),
             },
             "results": [],
