@@ -9,6 +9,7 @@ from contextlib import asynccontextmanager
 
 import httpx
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.error_handlers import install_error_handlers
 from app.api.middleware import RequestContextMiddleware
@@ -60,5 +61,16 @@ app = FastAPI(
     responses={422: {"model": ErrorResponse}, 500: {"model": ErrorResponse}},
 )
 app.add_middleware(RequestContextMiddleware)
+# Added last = outermost: every response gets the CORS headers, including the last-resort 500
+# from RequestContextMiddleware. Without them the browser hides the error body from the UI.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=list(get_settings().cors_allowed_origins),
+    allow_methods=["GET", "POST"],
+    allow_headers=["Content-Type", "X-Request-ID"],
+    # Response headers JavaScript may read; by default a cross-origin page sees almost none.
+    expose_headers=["X-Request-ID", "Server-Timing"],
+    max_age=600,  # the browser may cache a preflight answer for 10 minutes
+)
 install_error_handlers(app)
 app.include_router(router, prefix="/v1")

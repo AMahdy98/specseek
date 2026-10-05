@@ -366,6 +366,17 @@ Format: **Decision** / Alternative rejected / Why. Only choices actually made go
 - Percentiles are nearest-rank, so every reported number is an observed latency.
 - Result (PERF.md): p50 1.30 s, p95 2.05 s; 77% generate, 23% embed, 0.2% search.
 
+## 2026-10-06: CORS with an explicit origin list
+- The UI (Vite, `localhost:5173`) and the API (`localhost:8000`) are different origins, so the API
+  names the origins allowed to read its responses: `CORS_ALLOWED_ORIGINS`, default the Vite dev server.
+- **Rejected:** `allow_origins=["*"]` (any website could read answers through a visitor's browser);
+  **rejected:** a Vite dev proxy that hides the problem in development (the deployed UI and API are
+  on different hosts anyway, so CORS is needed there regardless).
+- No cookies or credentials are used, so `allow_credentials` stays off.
+- The CORS middleware is outermost so error responses carry the headers too; otherwise the browser
+  reports a bare network failure and the UI cannot show the error message or request ID.
+- `X-Request-ID` and `Server-Timing` are exposed to JavaScript explicitly.
+
 ## Future work (explicitly out of scope)
 - Token-bucket rate limiter and LLM response cache on `/v1/query` (optional items, not built yet).
 - **User accounts and saved chats per user** (requested 2026-10-03; auth, multi-user and

@@ -11,6 +11,9 @@ from pathlib import Path
 # Matches docker-compose.yml's dev credentials. Local-only; never a real secret.
 _DEFAULT_DATABASE_URL = "postgresql://specseek:specseek@localhost:5432/specseek"
 
+# The Vite dev server. `localhost` and `127.0.0.1` are different origins to a browser.
+_DEFAULT_CORS_ORIGINS = "http://localhost:5173,http://127.0.0.1:5173"
+
 
 @dataclass(frozen=True)
 class Settings:
@@ -19,6 +22,8 @@ class Settings:
     data_dir: Path  # POST /v1/ingest may only read PDFs under this directory
     embedding_model: str
     generation_model: str
+    # Browser origins (scheme://host:port) allowed to call the API from JavaScript.
+    cors_allowed_origins: tuple[str, ...]
     # repr=False: the key must never show up in a log line or a stack trace.
     gemini_api_key: str = field(repr=False)
 
@@ -34,5 +39,13 @@ def get_settings() -> Settings:
         # A pinned model name, not an alias like "flash-latest": answers must not change
         # under the evaluation without us choosing to change the model.
         generation_model=os.environ.get("GENERATION_MODEL", "gemini-3.5-flash-lite"),
+        cors_allowed_origins=parse_origins(
+            os.environ.get("CORS_ALLOWED_ORIGINS", _DEFAULT_CORS_ORIGINS)
+        ),
         gemini_api_key=os.environ.get("GEMINI_API_KEY", ""),
     )
+
+
+def parse_origins(raw: str) -> tuple[str, ...]:
+    """Comma-separated list → tuple. An origin never ends in a slash, so strip one if given."""
+    return tuple(o.strip().rstrip("/") for o in raw.split(",") if o.strip())
