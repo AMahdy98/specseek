@@ -114,6 +114,7 @@ class GeminiProvider:
                 )
             except httpx.TransportError as exc:  # timeouts, DNS, connection reset
                 problem, delay = type(exc).__name__, _backoff(attempt)
+                reason = str(exc)
             else:
                 if response.status_code == 200:
                     return response.json()
@@ -133,12 +134,18 @@ class GeminiProvider:
                         f"retry in about {math.ceil(requested / 60)} minutes"
                     )
                 delay = requested or _backoff(attempt)
+                reason = str(_error_fields(response)["provider_message"])[:300]
 
             if attempt == max_attempts:
                 break
             logger.warning(
                 "provider_retry",
-                extra={"problem": problem, "attempt": attempt, "delay_s": delay},
+                extra={
+                    "problem": problem,
+                    "attempt": attempt,
+                    "delay_s": delay,
+                    "reason": reason,
+                },
             )
             await self._sleep(delay)
 

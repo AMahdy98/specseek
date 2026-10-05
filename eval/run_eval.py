@@ -27,6 +27,7 @@ from app.config import get_settings
 from app.db import open_pool
 from app.errors import ProviderError
 from app.llm import GeminiProvider
+from app.logging_config import configure_logging
 from app.prompt import PROMPT_VERSION
 from app.rag import answer_question
 from app.retrieval import TOP_K
@@ -293,6 +294,8 @@ def command_run(args: argparse.Namespace) -> int:
         questions = [q for q in questions if q["id"] in wanted]
 
     settings = get_settings()
+    # Same structured logs as the API: a retry line then shows the provider's reason.
+    configure_logging("warning")
     current = {
         "generation_model": settings.generation_model,
         "embedding_model": settings.embedding_model,
