@@ -1,0 +1,104 @@
+# One of: correct | partial | wrong | correctly_refused
+# `category` (for failures): table split | vocabulary mismatch | near-duplicate chunks | hallucination | missed refusal | wrong refusal | other
+run: 20261005T121102Z
+grades:
+    - id: q01
+      naive: correct
+      section_aware: correct
+      category:
+      notes:
+    - id: q02
+      naive: correct
+      section_aware: correct
+      category:
+      notes:
+    - id: q03
+      naive: correct
+      section_aware: correct
+      category:
+      notes:
+    - id: q04
+      naive: partial
+      section_aware: correct
+      category: other
+      notes:
+    - id: q05
+      naive: wrong
+      section_aware: wrong
+      category: table split and wrong refusal
+      notes:
+    - id: q06
+      naive: correct
+      section_aware: correct
+      category:
+      notes:
+    - id: q07
+      naive: correct
+      section_aware: correct
+      category:
+      notes:
+    - id: q08
+      naive: correct
+      section_aware: correct
+      category:
+      notes:
+    - id: q09
+      naive: correct
+      section_aware: partial
+      category:
+      notes:
+    - id: q10
+      naive: correct
+      section_aware: correct
+      category:
+      notes:
+    - id: q11
+      naive: partial
+      section_aware: correct
+      category:
+      notes: naive cites page 5 which is not in the given sources
+    - id: q12
+      naive: wrong
+      section_aware: partial
+      category: wrong refusal
+      notes:
+    - id: q13
+      naive: correct
+      section_aware: correct
+      category:
+      notes:
+    - id: q14
+      naive: partial
+      section_aware: correct
+      category:
+      notes:
+    - id: q15
+      naive: wrong
+      section_aware: wrong
+      category: retrieval failure
+      notes: 
+    - id: q16
+      naive: wrong
+      section_aware: correct
+      category: wrong refusal
+      notes:
+    - id: q17
+      naive: correct
+      section_aware: correct
+      category:
+      notes:
+    - id: q18
+      naive: wrong
+      section_aware: correct
+      category: wrong refusal
+      notes: sections aware answer has a slight vocabulary mismatch
+    - id: q19
+      naive: correctly_refused
+      section_aware: correctly_refused
+      category:
+      notes:
+    - id: q20
+      naive: correctly_refused
+      section_aware: correctly_refused
+      category:
+      notes:

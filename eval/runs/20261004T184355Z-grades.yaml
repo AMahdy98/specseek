@@ -1,0 +1,34 @@
+# One of: correct | partial | wrong | correctly_refused
+# `category` (for failures): table split | vocabulary mismatch | near-duplicate chunks | hallucination | missed refusal | wrong refusal | other
+run: 20261004T184355Z
+grades:
+  - id: q01
+    naive: 
+    section_aware: 
+    category: 
+    notes: 
+  - id: q02
+    naive: 
+    section_aware: 
+    category: 
+    notes: 
+  - id: q03
+    naive: 
+    section_aware: 
+    category: 
+    notes: 
+  - id: q04
+    naive: 
+    section_aware: 
+    category: 
+    notes: 
+  - id: q05
+    naive: 
+    section_aware: 
+    category: 
+    notes: 
+  - id: q06
+    naive: 
+    section_aware: 
+    category: 
+    notes: 

@@ -31,7 +31,7 @@ questions:
     document: NPR-7150.2D
     clause: "3.7.4"
     page: 26
-    verified: false
+    verified: true
 
   - id: q02
     source: c02
@@ -45,7 +45,7 @@ questions:
     document: NPR-7150.2D
     clause: "3.7.5"
     page: 27
-    verified: false
+    verified: true
 
   - id: q03
     source: c03
@@ -59,7 +59,7 @@ questions:
     document: NPR-7150.2D
     clause: "3.2.1"
     page: 23
-    verified: false
+    verified: true
 
   - id: q04
     source: c04
@@ -75,7 +75,7 @@ questions:
     document: NPR-7150.2D
     clause: "3.6.2"
     page: 25
-    verified: false
+    verified: true
 
   - id: q05
     source: c12
@@ -89,7 +89,7 @@ questions:
     document: NPR-7150.2D
     clause: "Appendix C, row 3.9.2 (SWE-032)"
     page: 66
-    verified: false
+    verified: true
 
   - id: q06
     source: c13
@@ -103,7 +103,7 @@ questions:
     document: NPR-7150.2D
     clause: "3.7.2"
     page: 26
-    verified: false
+    verified: true
 
   - id: q07
     source: c15
@@ -119,7 +119,7 @@ questions:
     document: NASA-STD-8739.8B
     clause: "4.2"
     page: 20
-    verified: false
+    verified: true
 
   - id: q08
     source: c16
@@ -132,7 +132,7 @@ questions:
     document: NASA-STD-8739.8B
     clause: "4.4.1.2"
     page: 52
-    verified: false
+    verified: true
 
   - id: q09
     source: c17
@@ -145,7 +145,7 @@ questions:
     document: NASA-STD-8739.8B
     clause: "4.4.2.2, 4.4.2.3"
     page: 54
-    verified: false
+    verified: true
 
   - id: q10
     source: c18
@@ -159,7 +159,7 @@ questions:
     document: NASA-STD-8739.8B
     clause: "4.5"
     page: 60
-    verified: false
+    verified: true
 
   - id: q11
     source: c20
@@ -176,7 +176,7 @@ questions:
     document: NASA-STD-8739.8B
     clause: "Table 1, row 3.7.5 (SWE-220)"
     page: 31
-    verified: false
+    verified: true
 
   - id: q12
     source: c22
@@ -191,7 +191,7 @@ questions:
     document: NASA-STD-8739.8B
     clause: "1.4 -> 4.5"
     page: 6
-    verified: false
+    verified: true
 
   - id: q13
     source: c23
@@ -206,7 +206,7 @@ questions:
     document: FDA-Premarket
     clause: "V"
     page: 12
-    verified: false
+    verified: true
 
   - id: q14
     source: c26
@@ -220,7 +220,7 @@ questions:
     document: FDA-Premarket
     clause: "VI.H (Table 1)"
     page: 16
-    verified: false
+    verified: true
 
   - id: q15
     source: c28
@@ -235,7 +235,7 @@ questions:
     document: FDA-Premarket
     clause: "VI.I"
     page: 30
-    verified: false
+    verified: true
 
   - id: q16
     source: c31
@@ -250,7 +250,7 @@ questions:
     document: FDA-OTS
     clause: "III.A.1"
     page: 7
-    verified: false
+    verified: true
 
   - id: q17
     source: c32
@@ -265,7 +265,7 @@ questions:
     document: FDA-OTS
     clause: "III.A.6"
     page: 9
-    verified: false
+    verified: true
 
   - id: q18
     source: c35
@@ -282,7 +282,7 @@ questions:
     document: FDA-OTS
     clause: "III.A.5 -> FDA-Premarket V"
     page: 8
-    verified: false
+    verified: true
 
   - id: q19
     source: c37
@@ -294,7 +294,7 @@ questions:
     document: none
     clause: "none"
     page: 0
-    verified: false
+    verified: true
 
   - id: q20
     source: c40
@@ -306,4 +306,4 @@ questions:
     document: none
     clause: "none"
     page: 0
-    verified: false
+    verified: true

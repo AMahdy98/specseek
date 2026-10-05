@@ -1,0 +1,1277 @@
+{
+  "meta": {
+    "started_at": "20261004T184355Z",
+    "git_commit": "5d09480",
+    "prompt_version": "v1",
+    "top_k": 5,
+    "embedding_model": "gemini-embedding-001",
+    "generation_model": "gemini-3.8-flash",
+    "strategies": [
+      "naive",
+      "section_aware"
+    ]
+  },
+  "results": [
+    {
+      "question": {
+        "id": "q01",
+        "source": "c01",
+        "type": "direct",
+        "question": "How thoroughly must safety-critical code be exercised by tests, and against which coverage criterion?",
+        "expected": "100 percent code test coverage using the Modified Condition/Decision Coverage (MC/DC) criterion, for all identified safety-critical software components. [SWE-219]",
+        "document": "NPR-7150.2D",
+        "clause": "3.7.4",
+        "page": 26,
+        "verified": true
+      },
+      "answers": {
+        "naive": {
+          "answer": "If a project has safety-critical software, the project manager \"shall ensure that there is 100 percent code test coverage using the Modified Condition/Decision Coverage (MC/DC) criterion for all identified safety-critical software components\" [NPR-7150.2D, Page 26], [NASA-STD-8739.8B, Page 31].",
+          "refused": false,
+          "expected_page_retrieved": true,
+          "sources": [
+            {
+              "document": "NASA-STD-8739.8B",
+              "clause_id": null,
+              "heading": null,
+              "page": 31,
+              "score": 0.7444,
+              "content": "ed\nfor all identified safety-critical software components\nor that software developers provide a technically\nacceptable rationale or a risk assessment explaining\nwhy the test coverage is not possible or why the risk\ndoes not justify the cost of increasing coverage for\nthe safety-critical code component.\n3.7.5 220\nIf a project has safety-critical software, the\nproject manager shall ensure all identified safety-\ncritical software components have a cyclomatic\ncomplexity value of 15 or lower. Any exceedance\nshal"
+            },
+            {
+              "document": "NPR-7150.2D",
+              "clause_id": null,
+              "heading": null,
+              "page": 26,
+              "score": 0.7413,
+              "content": "nts control, mitigate, or contribute to a hazard as\nwell as software used to command hazardous operations/activities.\n3.7.4 If a project has safety-critical software, the project manager shall ensure that there is 100\nNPR 7150.2D -- Chapter3\nNPR 7150.2D -- Chapter3\npercent code test coverage using the Modified Condition/Decision Coverage (MC/DC) criterion for\nall identified safety-critical software components. [SWE-219]\nNote: In MC/DC coverage, every condition in a decision is tested independently to reach\n"
+            },
+            {
+              "document": "NPR-7150.2D",
+              "clause_id": null,
+              "heading": null,
+              "page": 27,
+              "score": 0.7366,
+              "content": "quirement interpretation or\nincorrect assumptions do not escape this testing.\n3.7.5 If a project has safety-critical software, the project manager shall ensure all identified\nsafety-critical software components have a cyclomatic complexity value of 15 or lower. Any\nexceedance shall be reviewed and waived with rationale by the project manager or technical\napproval authority. [SWE-220]\nNote: Cyclomatic complexity is a metric used to measure the complexity of a software\nprogram. This metric measures independen"
+            },
+            {
+              "document": "NASA-STD-8739.8B",
+              "clause_id": null,
+              "heading": null,
+              "page": 31,
+              "score": 0.729,
+              "content": " that are non-\nsafety-critical.\n5. Participate in software reviews affecting safety-\ncritical software products.\n6. Ensure the SWE-134 implementation supports and\nis consistent with the system hazard analysis.\n3.7.4 219\nIf a project has safety-critical software, the\nproject manager shall ensure that there is 100\npercent code test coverage using the Modified\nCondition/Decision Coverage (MC/DC) criterion\nfor all identified safety-critical software\ncomponents.\n1. Confirm that 100% code test coverage is address"
+            },
+            {
+              "document": "NPR-7150.2D",
+              "clause_id": null,
+              "heading": null,
+              "page": 37,
+              "score": 0.7283,
+              "content": "ded to be executed in specific configurations.\nThe code coverage data and any rationale for uncovered code should be presented and reviewed at\nmajor project milestones.\n4.5.10 The project manager shall verify code coverage is measured by analysis of the results of the\nexecution of tests. [SWE-190]\nNote: If it can be justified that the required percentage cannot be achieved by test\nexecution, the analysis, inspection, or review of design can be applied to the non-covered\ncode. The goal of the complementary a"
+            }
+          ]
+        },
+        "section_aware": {
+          "answer": "If a project has safety-critical software, the project manager \"shall ensure that there is 100 percent code test coverage using the Modified Condition/Decision Coverage (MC/DC) criterion for all identified safety-critical software components\" [NASA-STD-8739.8B, 3.7.4], [NPR-7150.2D, 3.7.4].",
+          "refused": false,
+          "expected_page_retrieved": true,
+          "sources": [
+            {
+              "document": "NASA-STD-8739.8B",
+              "clause_id": "3.7.4",
+              "heading": "3.7 Safety-Critical and Mission-Critical Software",
+              "page": 31,
+              "score": 0.7579,
+              "content": "3.7.4 219\nIf a project has safety-critical software, the\nproject manager shall ensure that there is 100\npercent code test coverage using the Modified\nCondition/Decision Coverage (MC/DC) criterion\nfor all identified safety-critical software\ncomponents.\n1. Confirm that 100% code test coverage is addressed\nfor all identified safety-critical software components\nor that software developers provide a technically\nacceptable rationale or a risk assessment explaining\nwhy the test coverage is not possible or why the risk\ndoes not justify the cost of increasing coverage for\nthe safety-critical code component."
+            },
+            {
+              "document": "NPR-7150.2D",
+              "clause_id": "3.7.4",
+              "heading": "3.7 Safety-critical Software",
+              "page": 65,
+              "score": 0.7503,
+              "content": "3.7.4 219\nIf a project has safety-critical\nsoftware, the project manager\nshall ensure that there is 100\npercent code test coverage\nusing the Modified\nCondition/Decision Coverage\n(MC/DC) criterion for all\nidentified safety-critical\nsoftware components.\nCenter\nX X X X"
+            },
+            {
+              "document": "NPR-7150.2D",
+              "clause_id": "3.7.4",
+              "heading": "3.7 Safety-Critical Software",
+              "page": 26,
+              "score": 0.7438,
+              "content": "3.7.4 If a project has safety-critical software, the project manager shall ensure that there is 100\nNPR 7150.2D -- Chapter3\nNPR 7150.2D -- Chapter3\npercent code test coverage using the Modified Condition/Decision Coverage (MC/DC) criterion for\nall identified safety-critical software components. [SWE-219]\nNote: In MC/DC coverage, every condition in a decision is tested independently to reach\nfull coverage. Each condition will be executed twice, once with the results true and once\nwith the results of false, but with no difference in the truth values of all other conditions in\nthe decision. In addition, it will be shown that each condition independently affects the\ndecision. Any deviations from 100 percent should be reviewed and waived with rationale\nby the TAs approval. It is recommended that someone independent of the developer of the\ncode under test design and perform this testing to ensure requirement interpretation or\nincorrect assumptions do not escape this testing."
+            },
+            {
+              "document": "NPR-7150.2D",
+              "clause_id": "4.5.10",
+              "heading": "4.5 Software Testing",
+              "page": 37,
+              "score": 0.7355,
+              "content": "4.5.10 The project manager shall verify code coverage is measured by analysis of the results of the\nexecution of tests. [SWE-190]\nNote: If it can be justified that the required percentage cannot be achieved by test\nexecution, the analysis, inspection, or review of design can be applied to the non-covered\ncode. The goal of the complementary analysis is to assess that the non-covered code\nbehavior is as expected."
+            },
+            {
+              "document": "NASA-STD-8739.8B",
+              "clause_id": "4.4.2.45",
+              "heading": "4.4 Independent Verification &Validation",
+              "page": 60,
+              "score": 0.7323,
+              "content": "4.4.2.45 The IV&V provider shall verify that code coverage is measured by analysis of the\nresults of the execution of tests."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "question": {
+        "id": "q02",
+        "source": "c02",
+        "type": "direct",
+        "question": "Is there an upper limit on how complex a safety-critical software component is allowed to be?",
+        "expected": "Yes. A cyclomatic complexity value of 15 or lower. Any exceedance shall be reviewed and waived with rationale by the project manager or technical approval authority. [SWE-220]",
+        "document": "NPR-7150.2D",
+        "clause": "3.7.5",
+        "page": 27,
+        "verified": true
+      },
+      "answers": {
+        "naive": {
+          "answer": "Yes. If a project has safety-critical software, the project manager \"shall ensure all identified safety-critical software components have a cyclomatic complexity value of 15 or lower\" [NPR-7150.2D, Page: 27]. \n\nAny exceedance \"shall be reviewed and waived with rationale by the project manager or technical approval authority\" [NPR-7150.2D, Page: 27], with software developers providing \"a technically acceptable risk assessment, accepted by the proper technical authority, explaining why the cyclomatic complexity value needs to be higher than 15 and why the software component cannot be structured to be lower than 15 or why the cost and risk of reducing the complexity to below 15 are not justified by the risk inherent in modifying the software component\" [NASA-STD-8739.8B, Page: 31].",
+          "refused": false,
+          "expected_page_retrieved": true,
+          "sources": [
+            {
+              "document": "NPR-7150.2D",
+              "clause_id": null,
+              "heading": null,
+              "page": 27,
+              "score": 0.755,
+              "content": "quirement interpretation or\nincorrect assumptions do not escape this testing.\n3.7.5 If a project has safety-critical software, the project manager shall ensure all identified\nsafety-critical software components have a cyclomatic complexity value of 15 or lower. Any\nexceedance shall be reviewed and waived with rationale by the project manager or technical\napproval authority. [SWE-220]\nNote: Cyclomatic complexity is a metric used to measure the complexity of a software\nprogram. This metric measures independen"
+            },
+            {
+              "document": "NASA-STD-8739.8B",
+              "clause_id": null,
+              "heading": null,
+              "page": 31,
+              "score": 0.7527,
+              "content": "l be reviewed and waived with rationale by\nthe project manager or technical approval\nauthority.\n1. Perform or analyze Cyclomatic Complexity\nmetrics on all identified safety-critical software\ncomponents.\n2. Confirm that all identified safety-critical software\ncomponents have a cyclomatic complexity value of\n15 or lower. If not, assure that software developers\nprovide a technically acceptable risk assessment,\naccepted by the proper technical authority, explaining\nwhy the cyclomatic complexity value needs to b"
+            },
+            {
+              "document": "NASA-STD-8739.8B",
+              "clause_id": null,
+              "heading": null,
+              "page": 31,
+              "score": 0.7514,
+              "content": "ed\nfor all identified safety-critical software components\nor that software developers provide a technically\nacceptable rationale or a risk assessment explaining\nwhy the test coverage is not possible or why the risk\ndoes not justify the cost of increasing coverage for\nthe safety-critical code component.\n3.7.5 220\nIf a project has safety-critical software, the\nproject manager shall ensure all identified safety-\ncritical software components have a cyclomatic\ncomplexity value of 15 or lower. Any exceedance\nshal"
+            },
+            {
+              "document": "NPR-7150.2D",
+              "clause_id": null,
+              "heading": null,
+              "page": 27,
+              "score": 0.7447,
+              "content": "t paths through the source code. The point of the\nrequirement is to minimize risk, minimize testing, and increase reliability associated with\nsafety-critical software code components, thus reducing the chance of software failure\nduring a hazardous event. The software developer should assess all software safety-critical\ncomponents with a cyclomatic complexity score over 15 for testability, maintainability, and\ncode quality. For more guidance on this requirement, see NASA-HDBK-2203.\n3.8 Automatic Generation o"
+            },
+            {
+              "document": "NASA-STD-8739.8B",
+              "clause_id": null,
+              "heading": null,
+              "page": 31,
+              "score": 0.7307,
+              "content": "e\nNPR\n7150.2\nSection\nSWE\n#\nNPR 7150.2 Requirement\nSoftware Assurance and Software Safety Tasks\nhigher than 15 and why the software component\ncannot be structured to be lower than 15 or why the\ncost and risk of reducing the complexity to below 15\nare not justified by the risk inherent in modifying the\nsoftware component.\n3.8 Automatic Generation of Software Source Code\n3.8.1 146\nThe project manager shall define the approach to\nthe automatic generation of software source code,\nincluding:\na. Validation and ver"
+            }
+          ]
+        },
+        "section_aware": {
+          "answer": "Yes. If a project has safety-critical software, the project manager \"shall ensure all identified safety-critical software components have a cyclomatic complexity value of 15 or lower\" [NPR-7150.2D, Clause 3.7.5]. \n\nHowever, this limit may be exceeded if it is handled via a waiver: \"Any exceedance shall be reviewed and waived with rationale by the project manager or technical approval authority\" [NPR-7150.2D, Clause 3.7.5].",
+          "refused": false,
+          "expected_page_retrieved": true,
+          "sources": [
+            {
+              "document": "NPR-7150.2D",
+              "clause_id": "3.7.5",
+              "heading": "3.7 Safety-Critical Software",
+              "page": 27,
+              "score": 0.7531,
+              "content": "3.7.5 If a project has safety-critical software, the project manager shall ensure all identified\nsafety-critical software components have a cyclomatic complexity value of 15 or lower. Any\nexceedance shall be reviewed and waived with rationale by the project manager or technical\napproval authority. [SWE-220]\nNote: Cyclomatic complexity is a metric used to measure the complexity of a software\nprogram. This metric measures independent paths through the source code. The point of the\nrequirement is to minimize risk, minimize testing, and increase reliability associated with\nsafety-critical software code components, thus reducing the chance of software failure\nduring a hazardous event. The software developer should assess all software safety-critical\ncomponents with a cyclomatic complexity score over 15 for testability, maintainability, and\ncode quality. For more guidance on this requirement, see NASA-HDBK-2203."
+            },
+            {
+              "document": "NPR-7150.2D",
+              "clause_id": "3.7.5",
+              "heading": "3.7 Safety-critical Software",
+              "page": 65,
+              "score": 0.7413,
+              "content": "3.7.5 220\nIf a project has safety-critical\nsoftware, the project manager\nshall ensure all identified\nsafety-critical software\ncomponents have a cyclomatic\ncomplexity value of 15 or\nlower. Any exceedance shall\nbe reviewed and waived with\nrationale by the project\nmanager or technical approval\nauthority.\nCenter\nX X X X"
+            },
+            {
+              "document": "NASA-STD-8739.8B",
+              "clause_id": "3.7.5",
+              "heading": "3.7 Safety-Critical and Mission-Critical Software",
+              "page": 31,
+              "score": 0.735,
+              "content": "3.7.5 220\nIf a project has safety-critical software, the\nproject manager shall ensure all identified safety-\ncritical software components have a cyclomatic\ncomplexity value of 15 or lower. Any exceedance\nshall be reviewed and waived with rationale by\nthe project manager or technical approval\nauthority.\n1. Perform or analyze Cyclomatic Complexity\nmetrics on all identified safety-critical software\ncomponents.\n2. Confirm that all identified safety-critical software\ncomponents have a cyclomatic complexity value of\n15 or lower. If not, assure that software developers\nprovide a technically acceptable risk assessment,\naccepted by the proper technical authority, explaining\nwhy the cyclomatic complexity value needs to be\nNPR\n7150.2\nSection\nSWE\n#\nNPR 7150.2 Requirement\nSoftware Assurance and Software Safety Tasks\nhigher than 15 and why the software component\ncannot be structured to be lower than 15 or why the\ncost and risk of reducing the complexity to below 15\nare not justified by the risk inherent in modifying the\nsoftware component."
+            },
+            {
+              "document": "NASA-STD-8739.8B",
+              "clause_id": "3.7.4",
+              "heading": "3.7 Safety-Critical and Mission-Critical Software",
+              "page": 31,
+              "score": 0.7008,
+              "content": "3.7.4 219\nIf a project has safety-critical software, the\nproject manager shall ensure that there is 100\npercent code test coverage using the Modified\nCondition/Decision Coverage (MC/DC) criterion\nfor all identified safety-critical software\ncomponents.\n1. Confirm that 100% code test coverage is addressed\nfor all identified safety-critical software components\nor that software developers provide a technically\nacceptable rationale or a risk assessment explaining\nwhy the test coverage is not possible or why the risk\ndoes not justify the cost of increasing coverage for\nthe safety-critical code component."
+            },
+            {
+              "document": "NPR-7150.2D",
+              "clause_id": "3.7.1",
+              "heading": "3.7 Safety-Critical Software",
+              "page": 26,
+              "score": 0.6982,
+              "content": "3.7.1 The project manager, in conjunction with the SMA organization, shall determine if each\nsoftware component is considered to be safety-critical per the criteria defined in\nNASA-STD-8739.8. [SWE-205]"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "question": {
+        "id": "q03",
+        "source": "c03",
+        "type": "direct",
+        "question": "How many cost estimation models are needed for a Class A project expected to cost more than two million dollars?",
+        "expected": "Two cost estimate models and associated cost parameters (for Class A and B software projects with an estimated project cost of $2 million or more). [SWE-015]",
+        "document": "NPR-7150.2D",
+        "clause": "3.2.1",
+        "page": 23,
+        "verified": true
+      },
+      "answers": {
+        "naive": {
+          "answer": "For all Class A and B software projects that have an estimated project cost of $2 million or more, the project manager shall establish, document, and maintain \"Two cost estimate models and associated cost parameters\" [NPR-7150.2D, Page: 23], [NPR-7150.2D, Page: 59].",
+          "refused": false,
+          "expected_page_retrieved": true,
+          "sources": [
+            {
+              "document": "NASA-STD-8739.8B",
+              "clause_id": null,
+              "heading": null,
+              "page": 25,
+              "score": 0.7862,
+              "content": "One software cost estimate model and\nassociated cost parameter(s) for all Class A and\nClass B software projects that have an estimated\nproject cost of less than $2 million.\nc. One software cost estimate model and\nassociated cost parameter(s) for all Class C and\nClass D software projects.\nd. One software cost estimate model and\nassociated cost parameter(s) for all Class F\nsoftware projects.\n1. Confirm that the required number of software cost\nestimates are complete and include software\nassurance cost estimat"
+            },
+            {
+              "document": "NPR-7150.2D",
+              "clause_id": null,
+              "heading": null,
+              "page": 59,
+              "score": 0.7832,
+              "content": "a. Two cost estimate models\nand associated cost parameters\nfor all Class A and B software\nprojects that have an estimated\nproject cost of $2 million or\nmore.\nb. One software cost estimate\nmodel and associated cost\nparameter(s) for all Class A\nand Class B software projects\nthat have an estimated project\ncost of less than $2 million.\nCenter\nX X X X\nX\nNPR 7150.2D -- AppendixC\nNPR 7150.2D -- AppendixC\ncost of less than $2 million.\nc. One software cost estimate\nmodel and associated cost\nparameter(s) for all Clas"
+            },
+            {
+              "document": "NPR-7150.2D",
+              "clause_id": null,
+              "heading": null,
+              "page": 23,
+              "score": 0.7777,
+              "content": " Class A and Class B\nsoftware projects that have an estimated project cost of less than $2 million.\nc. One software cost estimate model and associated cost parameter(s) for all Class C and Class D\nsoftware projects.\nd. One software cost estimate model and associated cost parameter(s) for all Class F software\nprojects.\n3.2.2 The project manager’s software cost estimate(s) shall satisfy the following conditions:\n[SWE-151]\na. Covers the entire software life cycle.\nb. Is based on selected project attributes (e."
+            },
+            {
+              "document": "NPR-7150.2D",
+              "clause_id": null,
+              "heading": null,
+              "page": 23,
+              "score": 0.738,
+              "content": "nts and\ndata meet the applicable requirements in this directive assigned to its software\nclassification as shown in Appendix C.\n3.2 Software Cost Estimation\n3.2.1 To better estimate the cost of development, the project manager shall establish, document, and\nmaintain: [SWE-015]\na. Two cost estimate models and associated cost parameters for all Class A and B software projects\nthat have an estimated project cost of $2 million or more.\nb. One software cost estimate model and associated cost parameter(s) for all"
+            },
+            {
+              "document": "NPR-7150.2D",
+              "clause_id": null,
+              "heading": null,
+              "page": 60,
+              "score": 0.7327,
+              "content": "s C\nand Class D software projects.\nd. One software cost estimate\nmodel and associated cost\nparameter(s) for all Class F\nsoftware projects.\n3.2.2 151\nThe project manager’s software\ncost estimate(s) shall satisfy\nthe following conditions:\na. Covers the entire software\nlife cycle.\nb. Is based on selected project\nattributes (e.g., programmatic\nassumptions/constraints,\nassessment of the size,\nfunctionality, complexity,\ncriticality, reuse code,\nmodified code, and risk of the\nsoftware processes and\nproducts).\nc. I"
+            }
+          ]
+        },
+        "section_aware": {
+          "answer": "For all Class A software projects that have an estimated project cost of $2 million or more, the project manager shall establish, document, and maintain \"[t]wo cost estimate models and associated cost parameters\" [NPR-7150.2D, Clause: 3.2.1].",
+          "refused": false,
+          "expected_page_retrieved": true,
+          "sources": [
+            {
+              "document": "NPR-7150.2D",
+              "clause_id": "3.2.1",
+              "heading": "3.2 Software Cost Estimation",
+              "page": 23,
+              "score": 0.7955,
+              "content": "3.2.1 To better estimate the cost of development, the project manager shall establish, document, and\nmaintain: [SWE-015]\na. Two cost estimate models and associated cost parameters for all Class A and B software projects\nthat have an estimated project cost of $2 million or more.\nb. One software cost estimate model and associated cost parameter(s) for all Class A and Class B\nsoftware projects that have an estimated project cost of less than $2 million.\nc. One software cost estimate model and associated cost parameter(s) for all Class C and Class D\nsoftware projects.\nd. One software cost estimate model and associated cost parameter(s) for all Class F software\nprojects."
+            },
+            {
+              "document": "NASA-STD-8739.8B",
+              "clause_id": "3.2.1",
+              "heading": "3.2 Software Cost Estimation",
+              "page": 25,
+              "score": 0.7685,
+              "content": "3.2.1 015\nTo better estimate the cost of development, the\nproject manager shall establish, document, and\nmaintain:\na. Two cost estimate models and associated cost\nparameters for all Class A and B software\nprojects that have an estimated project cost of $2\nmillion or more.\nb. One software cost estimate model and\nassociated cost parameter(s) for all Class A and\nClass B software projects that have an estimated\nproject cost of less than $2 million.\nc. One software cost estimate model and\nassociated cost parameter(s) for all Class C and\nClass D software projects.\nd. One software cost estimate model and\nassociated cost parameter(s) for all Class F\nsoftware projects.\n1. Confirm that the required number of software cost\nestimates are complete and include software\nassurance cost estimate(s) for the project, including a\ncost estimate associated with handling safety-critical\nsoftware and safety-critical data.\nNPR\n7150.2\nSection\nSWE\n#\nNPR 7150.2 Requirement\nSoftware Assurance and Software Safety Tasks"
+            },
+            {
+              "document": "NPR-7150.2D",
+              "clause_id": "3.2.1",
+              "heading": "3.2 Software Cost Estimation",
+              "page": 59,
+              "score": 0.7657,
+              "content": "3.2.1 015\nTo better estimate the cost of\ndevelopment, the project\nmanager shall establish,\ndocument, and maintain:\na. Two cost estimate models\nand associated cost parameters\nfor all Class A and B software\nprojects that have an estimated\nproject cost of $2 million or\nmore.\nb. One software cost estimate\nmodel and associated cost\nparameter(s) for all Class A\nand Class B software projects\nthat have an estimated project\ncost of less than $2 million.\nCenter\nX X X X\nX\nNPR 7150.2D -- AppendixC\nNPR 7150.2D -- AppendixC\ncost of less than $2 million.\nc. One software cost estimate\nmodel and associated cost\nparameter(s) for all Class C\nand Class D software projects.\nd. One software cost estimate\nmodel and associated cost\nparameter(s) for all Class F\nsoftware projects."
+            },
+            {
+              "document": "NPR-7150.2D",
+              "clause_id": "2.1.5.10",
+              "heading": "2.1.5 Center Director",
+              "page": 13,
+              "score": 0.6905,
+              "content": "2.1.5.10 For Class A, B, and C software projects, each Center Director, or designee, shall establish\nand maintain software cost repository(ies) that contains at least the following measures: [SWE-142]\nNPR 7150.2D -- Chapter2\nNPR 7150.2D -- Chapter2\na. Planned and actual effort and cost.\nb. Planned and actual schedule dates for major milestones.\nc. Both planned and actual values for key cost parameters that typically include software size,\nrequirements count, defects counts for maintenance or sustaining engineering projects, and cost\nmodel inputs.\nd. Project descriptors or metadata that typically includes software class, software domain/type, and\nrequirements volatility."
+            },
+            {
+              "document": "NPR-7150.2D",
+              "clause_id": "3.2.2",
+              "heading": "3.2 Software Cost Estimation",
+              "page": 60,
+              "score": 0.6871,
+              "content": "3.2.2 151\nThe project manager’s software\ncost estimate(s) shall satisfy\nthe following conditions:\na. Covers the entire software\nlife cycle.\nb. Is based on selected project\nattributes (e.g., programmatic\nassumptions/constraints,\nassessment of the size,\nfunctionality, complexity,\ncriticality, reuse code,\nmodified code, and risk of the\nsoftware processes and\nproducts).\nc. Is based on the cost\nimplications of the technology\nto be used and the required\nmaturation of that technology.\nd. Incorporates risk and\nuncertainty, including end state\nrisk and threat assessments for\ncybersecurity.\ne. Includes the cost of the\nrequired software assurance\nsupport.\nf. Includes other direct costs.\nCenter\nX X X X\nCIO\nX"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "question": {
+        "id": "q04",
+        "source": "c04",
+        "type": "direct",
+        "question": "Which kinds of projects are obliged to have independent verification and validation of their software?",
+        "expected": "Projects reaching Key Decision Point A that are (a) Category 1 projects per NPR 7120.5, (b) Category 2 projects per NPR 7120.5 with a Class A or Class B payload risk classification per NPR 8705.4, or (c) projects selected explicitly by the Mission Directorate Associate Administrator. [SWE-141]",
+        "document": "NPR-7150.2D",
+        "clause": "3.6.2",
+        "page": 25,
+        "verified": true
+      },
+      "answers": {
+        "naive": {
+          "answer": "I don't know based on these documents.",
+          "refused": true,
+          "expected_page_retrieved": true,
+          "sources": [
+            {
+              "document": "NASA-STD-8739.8B",
+              "clause_id": null,
+              "heading": null,
+              "page": 54,
+              "score": 0.7631,
+              "content": "nd software\nassurance personnel.\nNote: While independent, the IV&V provider is still a part of a project's overall safety and risk\nmitigation software assurance strategy. The results of IV&V analysis need to be incorporated\ninto the overall software assurance assessment of the project and provided to the project\nmanagement. The IV&V provider should support project milestone reviews and provide the\nproject with an evaluation of the life cycle review artifacts to assist development management\ndecisions on whe"
+            },
+            {
+              "document": "NASA-STD-8739.8B",
+              "clause_id": null,
+              "heading": null,
+              "page": 52,
+              "score": 0.7481,
+              "content": "cycle\ndemonstrates whether the software is fit for nominal operations (required functionality, safety,\ndependability, etc.) and off-nominal conditions (response to faults, responses to hazardous\nconditions, etc.). The goal of the IV&V effort is to contribute assurance conclusions provided\nto the project and stakeholders based on evidence found in software development artifacts and\nrisks associated with the intended behaviors of the software.\n4.4.1.2 Three parameters define the independence of IV&V: technica"
+            },
+            {
+              "document": "NPR-7150.2D",
+              "clause_id": null,
+              "heading": null,
+              "page": 25,
+              "score": 0.7468,
+              "content": "ion per NPR 8705.4, Risk Classification for NASA Payloads.\nc. Projects selected explicitly by the Mission Directorate Associate Administrator (MDAA) to have\nsoftware IV&V.\n3.6.3 If software IV&V is required for a project, the project manager, in consultation with NASA\nIV&V, shall ensure an IPEP is developed, approved, maintained, and executed in accordance with\nIV&V requirements in NASA-STD-8739.8. [SWE-131]\nNote: The IV&V Advisory Board will review the scope of NASA IV&V activities on an\nannual basis as pa"
+            },
+            {
+              "document": "NASA-STD-8739.8B",
+              "clause_id": null,
+              "heading": null,
+              "page": 53,
+              "score": 0.7426,
+              "content": "program for each project that provides\nIV&V so that the software will operate correctly, safely, reliably, and securely throughout\nits operational lifetime. The IPEP documents this tailored approach and summarizes the\ncost/benefit trade-offs made in the scoping process.\n4.4.1.7 The IV&V requirements are analyzed and partitioned according to the type of\nartifact. The requirements do not imply or require the use of any specific life cycle model. It is\nalso important to understand that IV&V applies to any life"
+            },
+            {
+              "document": "NASA-STD-8739.8B",
+              "clause_id": null,
+              "heading": null,
+              "page": 58,
+              "score": 0.742,
+              "content": "nerated code, embedded software, the software executed on processors embedded in\nprogrammable logic devices, legacy, heritage, applications, freeware, shareware, trial or\ndemonstration software.\n4.4.2.34 The IV&V provider shall verify and validate the appropriate use of off-the-shelf\nsoftware, including ensuring that the project has identified all OSS used and that the security\nrisks are identified and mitigated by the use of the off-the-shelf software.\n4.4.2.35 The IV&V provider shall verify and validate t"
+            }
+          ]
+        },
+        "section_aware": {
+          "answer": "For projects reaching Key Decision Point A, the program manager \"shall ensure that software IV&V is performed on the following categories of projects\" [NPR-7150.2D, Clause 3.6.2]:\n\n* \"Category 1 projects as defined in NPR 7120.5\" [NPR-7150.2D, Clause 3.6.2].\n* \"Category 2 projects as defined in NPR 7120.5, that have Class A or Class B payload risk classification per NPR 8705.4, Risk Classification for NASA Payloads\" [NPR-7150.2D, Clause 3.6.2].\n* \"Projects selected explicitly by the Mission Directorate Associate Administrator (MDAA) to have software IV&V\" [NPR-7150.2D, Clause 3.6.2].",
+          "refused": false,
+          "expected_page_retrieved": true,
+          "sources": [
+            {
+              "document": "NASA-STD-8739.8B",
+              "clause_id": "4.4.1.1",
+              "heading": "4.4 Independent Verification &Validation",
+              "page": 52,
+              "score": 0.7434,
+              "content": "4.4.1.1 IV&V is a technical discipline of software assurance that employs rigorous analysis\nand testing methodologies to identify objective evidence and conclusions to provide an\nindependent assessment of critical products and processes throughout the software\ndevelopment life cycle. The evaluation of products and processes throughout the life cycle\ndemonstrates whether the software is fit for nominal operations (required functionality, safety,\ndependability, etc.) and off-nominal conditions (response to faults, responses to hazardous\nconditions, etc.). The goal of the IV&V effort is to contribute assurance conclusions provided\nto the project and stakeholders based on evidence found in software development artifacts and\nrisks associated with the intended behaviors of the software."
+            },
+            {
+              "document": "NASA-STD-8739.8B",
+              "clause_id": "4.4.2.13",
+              "heading": "4.4 Independent Verification &Validation",
+              "page": 56,
+              "score": 0.7422,
+              "content": "4.4.2.13 The IV&V provider shall verify the project implements the requirements for\nsoftware listed in NPR 7150.2 and communicate any risks to the responsible organizations’\nproject management, engineering, and software assurance personnel."
+            },
+            {
+              "document": "NPR-7150.2D",
+              "clause_id": "3.6.3",
+              "heading": "3.6 Software Assurance and Software Independent Verification & Validation",
+              "page": 25,
+              "score": 0.7367,
+              "content": "3.6.3 If software IV&V is required for a project, the project manager, in consultation with NASA\nIV&V, shall ensure an IPEP is developed, approved, maintained, and executed in accordance with\nIV&V requirements in NASA-STD-8739.8. [SWE-131]\nNote: The IV&V Advisory Board will review the scope of NASA IV&V activities on an\nannual basis as part of the budget planning process."
+            },
+            {
+              "document": "NPR-7150.2D",
+              "clause_id": "3.6.2",
+              "heading": "3.6 Software Assurance and Software Independent Verification & Validation",
+              "page": 25,
+              "score": 0.7347,
+              "content": "3.6.2 For projects reaching Key Decision Point A, the program manager shall ensure that software\nIV&V is performed on the following categories of projects: [SWE-141]\na. Category 1 projects as defined in NPR 7120.5.\nb. Category 2 projects as defined in NPR 7120.5, that have Class A or Class B payload risk\nclassification per NPR 8705.4, Risk Classification for NASA Payloads.\nc. Projects selected explicitly by the Mission Directorate Associate Administrator (MDAA) to have\nsoftware IV&V."
+            },
+            {
+              "document": "NASA-STD-8739.8B",
+              "clause_id": "4.4.1.5",
+              "heading": "4.4 Independent Verification &Validation",
+              "page": 53,
+              "score": 0.734,
+              "content": "4.4.1.5 The main goal of the IV&V effort is to identify and generate objective evidence that\nsupports the correct operation of the system or refutes the correct operation of the system. The\nIV&V provider typically works with the development team to understand this objective\nevidence, which provides artifacts such as concept studies, operations concepts, and\nrequirements that define the overall project. The IV&V provider uses these materials to\ndevelop an independent understanding of the project’s commitment to NASA, which forms the\nbasis for validating lower-level technical artifacts."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "question": {
+        "id": "q05",
+        "source": "c12",
+        "type": "table",
+        "question": "Which authority has to sign off on tailoring the CMMI rating requirement for software developers?",
+        "expected": "HQ OCE and HQ OSMA (Authority column of the Requirements Mapping Matrix, row 3.9.2 / SWE-032). Most other rows name \"Center\".",
+        "document": "NPR-7150.2D",
+        "clause": "Appendix C, row 3.9.2 (SWE-032)",
+        "page": 66,
+        "verified": true
+      },
+      "answers": {
+        "naive": {
+          "answer": "I don't know based on these documents.",
+          "refused": true,
+          "expected_page_retrieved": false,
+          "sources": [
+            {
+              "document": "NPR-7150.2D",
+              "clause_id": null,
+              "heading": null,
+              "page": 18,
+              "score": 0.7433,
+              "content": " operations manager need\nto formally accept the tailoring risk. Tailoring decided at the Center level are to consult the Center\nETA, Center SMA TA, Center Health and Medical TA, and the NASA CIO’s Center IT Authority\ndesignee as defined in the requirements mapping matrix. The OSMA has co-approval on any\ntailoring decided at the HQ level that involves software. The Office of the Chief Medical Officer\n(OCHMO) has co-approval on any tailoring decided that involves software with health and medical\nimplications."
+            },
+            {
+              "document": "NPR-7150.2D",
+              "clause_id": null,
+              "heading": null,
+              "page": 28,
+              "score": 0.7429,
+              "content": "sess the current maturity/capability\nrating. Software development organizations need to maintain their appraisal rating during\nthe period they are responsible for the development and maintenance of the software.\nCMMI® ratings can cover a team, a group, a project, a division, or an entire organization.\nFor Class B software, an exception can be exercised for those cases in which NASA wishes to\npurchase a product from the \"best in class provider,\" but the best in class provider does not have the\nrequired CMMI®"
+            },
+            {
+              "document": "NASA-STD-8739.8B",
+              "clause_id": null,
+              "heading": null,
+              "page": 60,
+              "score": 0.7416,
+              "content": "d is governed by the\nfollowing steps. Tailoring at the Center level is decided by the SMA TA and the NPR 7150.2\nRequirements Mapping Matrix applicability. Tailor the software assurance, software safety, and\nIV&V requirements using the following levels:\na. The first level of tailoring is the Software Classification Decision, see NPR 7150.2.\nb. The second level of tailoring is the project’s Software Requirements Mapping Matrix, see\nNPR 7150.2.\nc. The third level of tailoring is the tailoring by the Software A"
+            },
+            {
+              "document": "NPR-7150.2D",
+              "clause_id": null,
+              "heading": null,
+              "page": 28,
+              "score": 0.7395,
+              "content": "’s process related requirements\nusing an industry standard approach.\nd. Assess internal and external software development organization’s processes and practices.\ne. Identify potential risk areas within a given organization’s software development processes and\npractices.\n3.9.2 The project manager shall acquire, develop, and maintain software from an organization with a\nnon-expired CMMI®-DEV rating as measured by a CMMI® Institute Certified Lead Appraiser as\nfollows: [SWE-032]\na. For Class A software: CMMI®-D"
+            },
+            {
+              "document": "NASA-STD-8739.8B",
+              "clause_id": null,
+              "heading": null,
+              "page": 61,
+              "score": 0.7368,
+              "content": "ting the\ntailoring request informs the next higher level of involved management of the tailoring request in a\ntimely manner. The dispositioning organization reviews the request with the other organizations\nthat could be impacted or have a potential risk (i.e., to safety, quality, cybersecurity, health) with\nthe proposed changes and obtains the concurrence of those organizations.\nIf a system or subsystem development evolves to meet a higher or lower software\nclassification defined in NPR 7150.2, the software"
+            }
+          ]
+        },
+        "section_aware": {
+          "answer": "For the CMMI rating requirement (SWE-032), the designated authorities are **HQ OCE and HQ OSMA** [NPR-7150.2D, Clause: 3.9.2]. \n\nIf a project wants to tailor a requirement marked as HQ TA, \"the project is required to get NASA HQ approval (e.g., OCE, OSMA, OCIO, or OCHMO) on a tailored request or a software Requirements Mapping Matrix\" [NPR-7150.2D, Clause: 2.1.8.2]. When relief is submitted in the form of a Requirements Mapping Matrix, \"The required signatures from engineering, NASA CIO, and SMA authorities are to be obtained\" [NPR-7150.2D, Clause: 2.2.6].",
+          "refused": false,
+          "expected_page_retrieved": true,
+          "sources": [
+            {
+              "document": "NPR-7150.2D",
+              "clause_id": "2.1.8.2",
+              "heading": "2.1.8 Technical Authorities",
+              "page": 17,
+              "score": 0.7439,
+              "content": "used to tailor from\nthe applicable “X” requirement(s).\nNote: The Requirements Mapping Matrix documents the requirements that the project plans\nto meet, “not applicable” requirements, and any tailoring approved by designated\nAuthorities with associated justification. If a project wants to tailor a requirement marked\nas HQ TA, then the project is required to get NASA HQ approval (e.g., OCE, OSMA,\nOCIO, or OCHMO) on a tailored request or a software Requirements Mapping Matrix."
+            },
+            {
+              "document": "NPR-7150.2D",
+              "clause_id": "2.2.6",
+              "heading": "2.2 Principles Related to Tailoring Requirements",
+              "page": 19,
+              "score": 0.7404,
+              "content": "2.2.6 Requests for software requirements relief at either the Center or HQ TA level (i.e., partial or\ncomplete relief) may be submitted in the streamlined form of a Requirements Mapping Matrix. The\nrequired signatures from engineering, NASA CIO, and SMA authorities are to be obtained. A\nrequired signature from designated SAISO is required for relief of cybersecurity requirements. If the\nRequirements Mapping Matrix is completed and approved in accordance with NPR 7120.5’s\ndirection on Authority and this directive, it meets the requirements for requesting tailoring."
+            },
+            {
+              "document": "NPR-7150.2D",
+              "clause_id": "2.1.6.4",
+              "heading": "2.1.6 Center SMA Director",
+              "page": 16,
+              "score": 0.7378,
+              "content": "2.1.6.4 The Center SMA Director will support the project to ensure that acquired, developed, and\nmaintained software, as required by SWE-032, is developed by an organization with a non-expired\nCMMI®-DEV rating as measured by a CMMI® Institute Certified Lead Appraiser."
+            },
+            {
+              "document": "NASA-STD-8739.8B",
+              "clause_id": "4.5",
+              "heading": "4.5 Principles Related to Tailoring the Standard Requirements",
+              "page": 60,
+              "score": 0.7255,
+              "content": "4.5 Principles Related to Tailoring the Standard Requirements\nThe SMA TA for the project shall review and approve any tailored Software Assurance\nand Software Safety Standard requirements.\nSoftware requirements tailoring is the process used to seek relief from standard\nrequirements consistent with program or project objectives, acceptable risk, and constraints. To\naccommodate the wide variety of software systems and subsystems, applying these requirements\nto specific software assurance, software safety, and IV&V efforts may be tailored where justified\nand approved. NASA established the TA governance model to approve and mitigate any changes\nto the Software Assurance and Software Safety Standard requirements. Tailoring from\nrequirements in the Software Assurance and Software Safety Standard is governed by the\nfollowing steps. Tailoring at the Center level is decided by the SMA TA and the NPR 7150.2\nRequirements Mapping Matrix applicability. Tailor the software assurance, software safety, and\nIV&V requirements using the following levels:\na. The first level of tailoring is the Software Classification Decision, see NPR 7150.2.\nb. The second level of tailoring is the project’s Software Requirements Mapping Matrix, see\nNPR 7150.2.\nc. The third level of tailoring is the tailoring by the Software Assurance TA of the Software\nAssurance and Software Safety Standard requirements that correspond to the project’s\nSoftware Requirements Mapping Matrix requirements.\nThe Software Assurance and Software Safety Standard establishes a baseline set of\nrequirements for software assurance, software safety, and IV&V to reduce risks on NASA projects\nand programs. Each project has unique circumstances, and tailoring can modify the requirements\nset for software assurance, software safety, and IV&V effort. Determining the tailoring of\nrequirements is a joint software engineering effort and SMA effort, including acceptable technical\nand programmatic risk posture, Agency priorities, size, and complexity. Requirements can be\ntailored more broadly across a group of similar projects, programs, organizations, or other\ncollections of similar software development efforts.\nPer SWE-121, the software assurance organization maintains a Requirements Mapping\nMatrix or multiple Requirements Mapping Matrices against requirements in the Software\nAssurance and Software Safety Standard, including those delegated to other parties or\naccomplished by contract vehicles. Per SWE-013 and SWE-039, the software assurance\norganization conducts risk assessment efforts to determine the software assurance, software safety,\nand IV&V tasks to be performed and the rigor of each task.\nThe request for relief from a requirement includes the rationale, a risk evaluation, and\n"
+            },
+            {
+              "document": "NPR-7150.2D",
+              "clause_id": "3.9.2",
+              "heading": "3.9 Software Development Processes and Practices",
+              "page": 66,
+              "score": 0.725,
+              "content": "3.9.2 032\nThe project manager shall\nacquire, develop, and maintain\nsoftware from an organization\nwith a non-expired\nCMMI®-DEV rating as\nmeasured by a CMMI®\nInstitute Certified Lead\nAppraiser as follows:\na. For Class A software:\nCMMI®-DEV Maturity Level\n3 Rating or higher for software.\nb. For Class B software (except\nClass B software on NASA\nClass D payloads, as defined in\nNPR 8705.4): CMMI®-DEV\nMaturity Level 2 Rating or\nhigher for software.\nHQ OCE\nand HQ\nOSMA\nX X"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "question": {
+        "id": "q06",
+        "source": "c13",
+        "type": "cross_reference",
+        "question": "A project has safety-critical software. Where are the safety-critical software requirements it must implement?",
+        "expected": "In NASA-STD-8739.8 - the project manager shall implement the safety-critical software requirements contained in NASA-STD-8739.8. [SWE-023]",
+        "document": "NPR-7150.2D",
+        "clause": "3.7.2",
+        "page": 26,
+        "verified": true
+      },
+      "answers": {
+        "naive": {
+          "answer": "If a project has safety-critical software, the project manager shall implement the safety-critical software requirements contained in NASA-STD-8739.8 [NPR-7150.2D, Page 26].",
+          "refused": false,
+          "expected_page_retrieved": true,
+          "sources": [
+            {
+              "document": "NPR-7150.2D",
+              "clause_id": null,
+              "heading": null,
+              "page": 32,
+              "score": 0.7602,
+              "content": "own and\nderived requirements from the top-level systems engineering requirements, safety and reliability\nanalyses, and the hardware specifications and design. [SWE-051]\n4.1.4 The project manager shall include software related safety constraints, controls, mitigations, and\nassumptions between the hardware, operator, and software in the software requirements\ndocumentation. [SWE-184]\n4.1.5 The project manager shall track and manage changes to the software requirements. [SWE-053]\n4.1.6 The project manager shall"
+            },
+            {
+              "document": "NASA-STD-8739.8B",
+              "clause_id": null,
+              "heading": null,
+              "page": 31,
+              "score": 0.7545,
+              "content": " that are non-\nsafety-critical.\n5. Participate in software reviews affecting safety-\ncritical software products.\n6. Ensure the SWE-134 implementation supports and\nis consistent with the system hazard analysis.\n3.7.4 219\nIf a project has safety-critical software, the\nproject manager shall ensure that there is 100\npercent code test coverage using the Modified\nCondition/Decision Coverage (MC/DC) criterion\nfor all identified safety-critical software\ncomponents.\n1. Confirm that 100% code test coverage is address"
+            },
+            {
+              "document": "NASA-STD-8739.8B",
+              "clause_id": null,
+              "heading": null,
+              "page": 30,
+              "score": 0.7468,
+              "content": "aceability between software\nrequirements and hazards with software contributions\nexists.\n5. Develop and maintain a software safety analysis\nthroughout the software development life cycle.\n3.7.2 023\nIf a project has safety-critical software, the\nproject manager shall implement the safety-\ncritical software requirements contained in\nNASA-STD-8739.8.\n1. Confirm that the identified safety-critical software\ncomponents and data have implemented the safety-\ncritical software assurance requirements listed in this\ns"
+            },
+            {
+              "document": "NPR-7150.2D",
+              "clause_id": null,
+              "heading": null,
+              "page": 26,
+              "score": 0.7453,
+              "content": "criteria defined in\nNASA-STD-8739.8. [SWE-205]\n3.7.2 If a project has safety-critical software, the project manager shall implement the safety-critical\nsoftware requirements contained in NASA-STD-8739.8. [SWE-023]\n3.7.3 If a project has safety-critical software or mission-critical software, the project manager shall\nimplement the following items in the software: [SWE-134]\na. The software is initialized, at first start and restarts, to a known safe state.\nb. The software safely transitions between all predef"
+            },
+            {
+              "document": "NASA-STD-8739.8B",
+              "clause_id": null,
+              "heading": null,
+              "page": 19,
+              "score": 0.7449,
+              "content": " information provided by the software assurance,\nsoftware safety, and IV&V function throughout a project.\nThe Software Assurance and Software Safety Standard’s requirements apply to\norganizations in their roles as both Acquirers and Providers.\n4.2 Safety-Critical Software Determination\nSoftware is classified as safety-critical if the software is determined by and traceable to\na hazard analysis. Software is classified as safety-critical if it meets at least one of the following\ncriteria:\na. Causes or contrib"
+            }
+          ]
+        },
+        "section_aware": {
+          "answer": "If a project has safety-critical software, the safety-critical software requirements that the project manager shall implement are contained in NASA-STD-8739.8 [NPR-7150.2D, Clause: 3.7.2].",
+          "refused": false,
+          "expected_page_retrieved": true,
+          "sources": [
+            {
+              "document": "NPR-7150.2D",
+              "clause_id": "4.1.4",
+              "heading": "4.1 Software Requirements",
+              "page": 32,
+              "score": 0.7685,
+              "content": "4.1.4 The project manager shall include software related safety constraints, controls, mitigations, and\nassumptions between the hardware, operator, and software in the software requirements\ndocumentation. [SWE-184]"
+            },
+            {
+              "document": "NPR-7150.2D",
+              "clause_id": "3.7.2",
+              "heading": "3.7 Safety-Critical Software",
+              "page": 26,
+              "score": 0.7559,
+              "content": "3.7.2 If a project has safety-critical software, the project manager shall implement the safety-critical\nsoftware requirements contained in NASA-STD-8739.8. [SWE-023]"
+            },
+            {
+              "document": "NASA-STD-8739.8B",
+              "clause_id": "4.1.4",
+              "heading": "4.3 Software Assurance and Software Safety Requirements",
+              "page": 37,
+              "score": 0.7533,
+              "content": "4.1.4 184\nThe project manager shall include software\nrelated safety constraints, controls, mitigations,\nand assumptions between the hardware, operator,\nand software in the software requirements\ndocumentation.\n1. Analyze and confirm that the software\nrequirements documentation contains the software\nrelated safety constraints, controls, mitigations, and\nassumptions between the hardware, operator, and the\nsoftware."
+            },
+            {
+              "document": "NASA-STD-8739.8B",
+              "clause_id": "3.7.2",
+              "heading": "3.7 Safety-Critical and Mission-Critical Software",
+              "page": 30,
+              "score": 0.7395,
+              "content": "3.7.2 023\nIf a project has safety-critical software, the\nproject manager shall implement the safety-\ncritical software requirements contained in\nNASA-STD-8739.8.\n1. Confirm that the identified safety-critical software\ncomponents and data have implemented the safety-\ncritical software assurance requirements listed in this\nstandard."
+            },
+            {
+              "document": "NPR-7150.2D",
+              "clause_id": "4.5.12",
+              "heading": "4.5 Software Testing",
+              "page": 37,
+              "score": 0.7363,
+              "content": "4.5.12 The project manager shall verify through test the software requirements that trace to a\nhazardous event, cause, or mitigation technique. [SWE-192]"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "question": {
+        "id": "q07",
+        "source": "c15",
+        "type": "direct",
+        "question": "What makes a piece of software count as safety-critical?",
+        "expected": "It is determined by and traceable to a hazard analysis, and meets at least one of - (a) causes or contributes to a system hazardous condition/event, (b) controls functions identified in a system hazard, (c) provides mitigation for a system hazardous condition/event, (d) mitigates damage if a hazardous condition/event occurs, (e) detects, reports, and takes corrective action if the system reaches a potentially hazardous state.",
+        "document": "NASA-STD-8739.8B",
+        "clause": "4.2",
+        "page": 20,
+        "verified": true
+      },
+      "answers": {
+        "naive": {
+          "answer": "Software is classified as safety-critical if it is \"determined by and traceable to a hazard analysis\" [NASA-STD-8739.8B, Page 16]. \n\nIt is also classified as safety-critical if it meets at least one of the following criteria:\n* \"Causes or contributes to a system hazardous condition/event,\" [NASA-STD-8739.8B, Page 16]\n* \"Controls functions identified in a system hazard,\" [NASA-STD-8739.8B, Page 16]\n* \"Provides mitigation for a system hazardous condition/event,\" [NASA-STD-8739.8B, Page 16]\n* \"Mitigates damage if a hazardous condition/event occurs,\" [NASA-STD-8739.8B, Page 16]\n* \"Detects, reports, and takes corrective action if the system reaches a potentially hazardous state\" [NASA-STD-8739.8B, Page 16].",
+          "refused": false,
+          "expected_page_retrieved": false,
+          "sources": [
+            {
+              "document": "NASA-STD-8739.8B",
+              "clause_id": null,
+              "heading": null,
+              "page": 16,
+              "score": 0.7796,
+              "content": "ified as safety-critical if it meets at least\none of the following criteria:\na. Causes or contributes to a system hazardous condition/event,\nb. Controls functions identified in a system hazard,\nc. Provides mitigation for a system hazardous condition/event,\nd. Mitigates damage if a hazardous condition/event occurs,\ne. Detects, reports, and takes corrective action if the system reaches a potentially hazardous state.\nSoftware. defined as (1) computer programs, procedures, and associated documentation and\ndata "
+            },
+            {
+              "document": "NPR-7150.2D",
+              "clause_id": null,
+              "heading": null,
+              "page": 26,
+              "score": 0.7481,
+              "content": ". The software performs prerequisite checks prior to the execution of safety-critical software\ncommands.\ni. No single software event or action is allowed to initiate an identified hazard.\nj. The software responds to an off-nominal condition within the time needed to prevent a hazardous\nevent.\nk. The software provides error handling.\nl. The software can place the system into a safe state.\nNote: These requirements apply to components that reside in a mission-critical or\nsafety-critical system, and the compone"
+            },
+            {
+              "document": "NASA-STD-8739.8B",
+              "clause_id": null,
+              "heading": null,
+              "page": 31,
+              "score": 0.7445,
+              "content": "/from the software system.\nh. The software performs prerequisite checks\nprior to the execution of safety-critical software\ncommands.\ni. No single software event or action is allowed to\ninitiate an identified hazard.\nj. The software responds to an off-nominal\ncondition within the time needed to prevent a\nhazardous event.\nk. The software provides error handling.\nl. The software can place the system into a safe\nstate.\nb. That the design logically isolates the safety-critical\ndesign elements and data from those"
+            },
+            {
+              "document": "NASA-STD-8739.8B",
+              "clause_id": null,
+              "heading": null,
+              "page": 16,
+              "score": 0.7444,
+              "content": " Effects\nAnalysis are used to help identify hazards, hazard causes, and potential failure modes.\nSafety-Critical. A term describing any condition, event, operation, process, equipment, or\nsystem that could cause or lead to severe injury, major damage, or mission failure if performed\nor built improperly or allowed to remain uncorrected. (Source NPR 8715.3)\nSafety-Critical Software. Software is classified as safety-critical if the software is determined\nby and traceable to a hazard analysis. Software is class"
+            },
+            {
+              "document": "NPR-7150.2D",
+              "clause_id": null,
+              "heading": null,
+              "page": 79,
+              "score": 0.7441,
+              "content": " that is:\n(a) Required to operate the vehicle or space asset (e.g., spacesuit, rover, or outpost), including\ncommanding of the vehicle or asset.\n(b) Required to sustain a safe, habitable1 environment for the crew.\n(c) Required to achieve the primary mission objectives.\n(d) Required to directly prepare resources (e.g., data, fuel, power) that are consumed by the above\nfunctions.\n*Includes software involving launch, on-orbit, in space, surface operations, entry, descent, and\nlanding.\n1 Current standards that "
+            }
+          ]
+        },
+        "section_aware": {
+          "answer": "Software is classified as safety-critical if it is \"determined by and traceable to a hazard analysis\" and meets at least one of the following criteria:\n\n* \"Causes or contributes to a system hazardous condition/event\" [NASA-STD-8739.8B, Clause 4.2]\n* \"Controls functions identified in a system hazard\" [NASA-STD-8739.8B, Clause 4.2]\n* \"Provides mitigation for a system hazardous condition/event\" [NASA-STD-8739.8B, Clause 4.2]\n* \"Mitigates damage if a hazardous condition/event occurs\" [NASA-STD-8739.8B, Clause 4.2]\n* \"Detects, reports, and takes corrective action if the system reaches a potentially hazardous state\" [NASA-STD-8739.8B, Clause 4.2].\n\nAdditionally, the project manager, in conjunction with the SMA organization, \"shall determine if each software component is considered to be safety-critical per the criteria defined in NASA-STD-8739.8\" [NPR-7150.2D, Clause 3.7.1].",
+          "refused": false,
+          "expected_page_retrieved": true,
+          "sources": [
+            {
+              "document": "NASA-STD-8739.8B",
+              "clause_id": "4.2",
+              "heading": "4.2 Safety-Critical Software Determination",
+              "page": 20,
+              "score": 0.7512,
+              "content": "4.2 Safety-Critical Software Determination\nSoftware is classified as safety-critical if the software is determined by and traceable to\na hazard analysis. Software is classified as safety-critical if it meets at least one of the following\ncriteria:\na. Causes or contributes to a system hazardous condition/event,\nb. Controls functions identified in a system hazard,\nc. Provides mitigation for a system hazardous condition/event,\nd. Mitigates damage if a hazardous condition/event occurs,\ne. Detects, reports, and takes corrective action if the system reaches a potentially hazardous state.\nNote: See Appendix A for guidelines associated with addressing software in hazard definitions.\nSee Table 1, 3.7.1, SWE-205 for more details. Consideration for other independent means of\nprotection (software, hardware, barriers, or administrative) should be a part of the system\nhazard definition process."
+            },
+            {
+              "document": "NASA-STD-8739.8B",
+              "clause_id": "3.2",
+              "heading": "3.2 Definitions",
+              "page": 16,
+              "score": 0.7292,
+              "content": "process, equipment, or\nsystem that could cause or lead to severe injury, major damage, or mission failure if performed\nor built improperly or allowed to remain uncorrected. (Source NPR 8715.3)\nSafety-Critical Software. Software is classified as safety-critical if the software is determined\nby and traceable to a hazard analysis. Software is classified as safety-critical if it meets at least\none of the following criteria:\na. Causes or contributes to a system hazardous condition/event,\nb. Controls functions identified in a system hazard,\nc. Provides mitigation for a system hazardous condition/event,\nd. Mitigates damage if a hazardous condition/event occurs,\ne. Detects, reports, and takes corrective action if the system reaches a potentially hazardous state.\nSoftware. defined as (1) computer programs, procedures, and associated documentation and\ndata pertaining to the operation of a computer system (2) all or a part of the programs,\nprocedures, rules, and associated documentation of an information processing (3) program or set\nof programs used to run a computer (4) all or part of the programs which process or support the\nprocessing of digital information (5) part of a product that is the computer program or the set of\ncomputer programs. This definition applies to software developed by NASA, software developed\nfor NASA, software maintained by or for NASA, Commercial-Off-The-Shelf (COTS),\nGovernment-Off-The-Shelf (GOTS), Modified-Off-The-Shelf (MOTS), Open Source Software\n(OSS), reused software components, auto-generated code, embedded software, the software\nexecuted on processors embedded in programmable logic devices (see NASA-HDBK-4008),\nlegacy, heritage, applications, freeware, shareware, trial or demonstration software, and OSS\ncomponents. (Source NPR 7150.2)\nSoftware Assurance. (1) a set of activities that assess adherence to, and the adequacy of the\nsoftware processes used to develop and modify software products. Software assurance also\ndetermines the degree to which the desired results from software quality control are being\nobtained. (2) set of activities that define and assess the adequacy of software processes to provide\nevidence that establishes confidence that the software processes are appropriate for and produce\nsoftware products of suitable quality for their intended purposes. (Source IEEE Definition)\nNote: A key attribute of software assurance is the objectivity of the software assurance function\nwith respect to the project.\nSoftware Developer. A person, organization, or system that develops software based on\nprogram/project requirements.\nSoftware Life Cycle. The period that begins when a software product is conceived and ends\nwhen the software is no longer available for use. The software life cycle typically includes a\nconcept phase, requirements phase, design phase, implementation phase, test phase, installation\nand checkout phase, operation and maintenance phase, and sometimes, retirement phase.\nSoftware Peer Review. An examination of a software product to detect and identify software\nanomalies, including errors and deviations from standards and specifications. (Source IEEE\nDefinition)\n"
+            },
+            {
+              "document": "NPR-7150.2D",
+              "clause_id": "3.7.3",
+              "heading": "3.7 Safety-Critical Software",
+              "page": 26,
+              "score": 0.7228,
+              "content": "3.7.3 If a project has safety-critical software or mission-critical software, the project manager shall\nimplement the following items in the software: [SWE-134]\na. The software is initialized, at first start and restarts, to a known safe state.\nb. The software safely transitions between all predefined known states.\nc. Termination performed by software functions is performed to a known safe state.\nd. Operator overrides of software functions require at least two independent actions by an operator.\ne. Software rejects commands received out of sequence when execution of those commands out of\nsequence can cause a hazard.\nf. The software detects inadvertent memory modification and recovers to a known safe state.\ng. The software performs integrity checks on inputs and outputs to/from the software system.\nh. The software performs prerequisite checks prior to the execution of safety-critical software\ncommands.\ni. No single software event or action is allowed to initiate an identified hazard.\nj. The software responds to an off-nominal condition within the time needed to prevent a hazardous\nevent.\nk. The software provides error handling.\nl. The software can place the system into a safe state.\nNote: These requirements apply to components that reside in a mission-critical or\nsafety-critical system, and the components control, mitigate, or contribute to a hazard as\nwell as software used to command hazardous operations/activities."
+            },
+            {
+              "document": "NPR-7150.2D",
+              "clause_id": "3.7.1",
+              "heading": "3.7 Safety-Critical Software",
+              "page": 26,
+              "score": 0.717,
+              "content": "3.7.1 The project manager, in conjunction with the SMA organization, shall determine if each\nsoftware component is considered to be safety-critical per the criteria defined in\nNASA-STD-8739.8. [SWE-205]"
+            },
+            {
+              "document": "NASA-STD-8739.8B",
+              "clause_id": "3.2",
+              "heading": "3.2 Definitions",
+              "page": 15,
+              "score": 0.7081,
+              "content": "(Source NPR 8715.3)\nNote: A risk is an uncertain future event, or combination of events, that could threaten the\nachievement of performance objectives or requirements. A \"problem,\" on the other hand,\ndescribes an issue that is certain or near certain to exist now, or an event that has been\ndetermined with certainty or near certainty to have occurred and is threatening the achievement\nof an objective or requirement. It is generally at the discretion of the decision authority to define\nat what level of certainty (i.e., likelihood) an event may be classified and addressed as a\n“problem” rather than as a “risk.” A risk may be conditional upon a problem, i.e., an existing\nissue may or may not develop into performance-objective consequences or the extent to which it\nmay be at present uncertain.\nRisk Posture. A characterization of risk based on conditions (e.g., criticality, complexity,\nenvironments, performance, cost, schedule) and a set of identified risks, taken as a whole which\nallows an understanding of the overall risk or provides a target risk range or level, which can\nthen be used to support decisions being made.\nSafe State. A system state in which hazards are inhibited, and all hazardous actuators are in a\nnon-hazardous state. The system can have more than one Safe State.\nSafety. Freedom from those conditions that can cause death, injury, occupational illness,\ndamage to or loss of equipment or property, or damage to the environment. In a risk-informed\ncontext, safety is an overall mission and program condition that provides sufficient assurance\nthat accidents will not result from the mission execution or program implementation, or, if they\noccur, their consequences will be mitigated. This assurance is established by means of the\nsatisfaction of a combination of deterministic criteria and risk criteria. (Source NPR 8715.3)\nSafety Analysis. Generic term for a family of analyses, which includes but is not limited to,\npreliminary hazard analysis, system (subsystem) hazard analysis, operating hazard analysis,\nsoftware hazard analysis, sneak circuit, and others. Software safety analysis consists of a number\nof tools and techniques to identify safety risks and formulate effective controls. These techniques\nare used to help identify the hazards during the Hazard Analysis process, which in turn identifies\nthe safety-critical software. The Safety Analysis techniques often used to support the Hazard\nAnalysis are the Software Fault Tree Analysis and the Software Failure Modes and Effects\nAnalysis. The Software Fault Tree Analysis and the Software Failure Modes and Effects\nAnalysis are used to help identify hazards, hazard causes, and potential failure modes.\nSafety-Critical. A term describing any condition, event, operation, process, equipment, or\nsystem that could cause or lead to severe injury, major damage, or mission failure if performed\nor built improperly or allowed to remain uncorrected. (Source NPR 8715.3)\nSafety-Critical Software. Software is classified as safety-critical if the software is determined\nby and traceable to a hazard analysis. Software is classified as safety-critical if it meets at least\n"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "question": {
+        "id": "q08",
+        "source": "c16",
+        "type": "direct",
+        "question": "In what ways must an IV&V team be independent of the project it examines?",
+        "expected": "Three parameters - technical independence, managerial independence, and financial independence.",
+        "document": "NASA-STD-8739.8B",
+        "clause": "4.4.1.2",
+        "page": 52,
+        "verified": true
+      },
+      "answers": {
+        "naive": {
+          "answer": "The independence of IV&V is defined by three parameters [NASA-STD-8739.8B, Page 52]:\n\n* **Technical independence:** Requires that \"the personnel performing the IV&V analysis are not involved in the development of the system or its elements\" [NASA-STD-8739.8B, Page 52].\n* **Managerial independence:** Requires that \"the personnel performing the IV&V analysis are not in the same organization as the development and program management team\" [NASA-STD-8739.8B, Page 52]. It also means that the IV&V team \"makes its own decisions about which segments of the system and its software to analyze and test, chooses the IV&V analysis methods to apply, and defines the IV&V schedule of activities\" [NASA-STD-8739.8B, Page 52]. Additionally, the submission of findings to program management \"should not include any restrictions (e.g., requiring the approval of the development organization) or any other adverse pressures from the development group\" [NASA-STD-8739.8B, Page 52].\n* **Financial independence:** Requires that \"the control of the IV&V budget be vested in a group independent of the software development organization\" [NASA-STD-8739.8B, Page 52].",
+          "refused": false,
+          "expected_page_retrieved": true,
+          "sources": [
+            {
+              "document": "NASA-STD-8739.8B",
+              "clause_id": null,
+              "heading": null,
+              "page": 52,
+              "score": 0.8267,
+              "content": "l independence,\nmanagerial independence, and financial independence.\na. Technical independence requires that the personnel performing the IV&V analysis are\nnot involved in the development of the system or its elements. The IV&V team establishes\nan understanding of the problem and how the system addresses the problem. Through\ntechnical independence, the IV&V team’s different perspective allows it to detect subtle\nerrors overlooked by personnel focused on developing the system.\nb. Managerial independence requ"
+            },
+            {
+              "document": "NASA-STD-8739.8B",
+              "clause_id": null,
+              "heading": null,
+              "page": 52,
+              "score": 0.8256,
+              "content": "ires that the personnel performing the IV&V analysis are\nnot in the same organization as the development and program management team.\nManagerial independence also means that the IV&V team makes its own decisions about\nwhich segments of the system and its software to analyze and test, chooses the IV&V\nanalysis methods to apply, and defines the IV&V schedule of activities. While independent\nfrom the development and program management organization, the IV&V team provides its\nfindings in a timely manner to both"
+            },
+            {
+              "document": "NASA-STD-8739.8B",
+              "clause_id": null,
+              "heading": null,
+              "page": 54,
+              "score": 0.7966,
+              "content": "nd software\nassurance personnel.\nNote: While independent, the IV&V provider is still a part of a project's overall safety and risk\nmitigation software assurance strategy. The results of IV&V analysis need to be incorporated\ninto the overall software assurance assessment of the project and provided to the project\nmanagement. The IV&V provider should support project milestone reviews and provide the\nproject with an evaluation of the life cycle review artifacts to assist development management\ndecisions on whe"
+            },
+            {
+              "document": "NASA-STD-8739.8B",
+              "clause_id": null,
+              "heading": null,
+              "page": 52,
+              "score": 0.7884,
+              "content": " of those organizations. The submission of findings to\nthe program management organization should not include any restrictions (e.g., requiring\nthe approval of the development organization) or any other adverse pressures from the\ndevelopment group.\nc. Financial independence requires that the control of the IV&V budget be vested in a\ngroup independent of the software development organization. Financial independence does\nnot necessarily mean that the IV&V team controls the budget but that the finances should\n"
+            },
+            {
+              "document": "NASA-STD-8739.8B",
+              "clause_id": null,
+              "heading": null,
+              "page": 52,
+              "score": 0.7518,
+              "content": "cycle\ndemonstrates whether the software is fit for nominal operations (required functionality, safety,\ndependability, etc.) and off-nominal conditions (response to faults, responses to hazardous\nconditions, etc.). The goal of the IV&V effort is to contribute assurance conclusions provided\nto the project and stakeholders based on evidence found in software development artifacts and\nrisks associated with the intended behaviors of the software.\n4.4.1.2 Three parameters define the independence of IV&V: technica"
+            }
+          ]
+        },
+        "section_aware": {
+          "answer": "Three parameters define the independence of IV&V:\n\n1. **Technical independence**: Requires that the personnel performing the IV&V analysis \"are not involved in the development of the system or its elements\" [NASA-STD-8739.8B, Clause 4.4.1.2].\n2. **Managerial independence**: Requires that the personnel performing the IV&V analysis \"are not in the same organization as the development and program management team\" [NASA-STD-8739.8B, Clause 4.4.1.2]. It also means the IV&V team \"makes its own decisions about which segments of the system and its software to analyze and test, chooses the IV&V analysis methods to apply, and defines the IV&V schedule of activities\" [NASA-STD-8739.8B, Clause 4.4.1.2]. Furthermore, the submission of findings to the program management organization \"should not include any restrictions (e.g., requiring the approval of the development organization) or any other adverse pressures from the development group\" [NASA-STD-8739.8B, Clause 4.4.1.2].\n3. **Financial independence**: Requires that \"the control of the IV&V budget be vested in a group independent of the software development organization\" [NASA-STD-8739.8B, Clause 4.4.1.2]. The finances \"should be structured so that funding is available for the IV&V team to complete its analysis or test work,\" and \"no adverse financial pressure or influence is applied\" [NASA-STD-8739.8B, Clause 4.4.1.2].",
+          "refused": false,
+          "expected_page_retrieved": true,
+          "sources": [
+            {
+              "document": "NASA-STD-8739.8B",
+              "clause_id": "4.4.1.2",
+              "heading": "4.4 Independent Verification &Validation",
+              "page": 52,
+              "score": 0.8068,
+              "content": "4.4.1.2 Three parameters define the independence of IV&V: technical independence,\nmanagerial independence, and financial independence.\na. Technical independence requires that the personnel performing the IV&V analysis are\nnot involved in the development of the system or its elements. The IV&V team establishes\nan understanding of the problem and how the system addresses the problem. Through\ntechnical independence, the IV&V team’s different perspective allows it to detect subtle\nerrors overlooked by personnel focused on developing the system.\nb. Managerial independence requires that the personnel performing the IV&V analysis are\nnot in the same organization as the development and program management team.\nManagerial independence also means that the IV&V team makes its own decisions about\nwhich segments of the system and its software to analyze and test, chooses the IV&V\nanalysis methods to apply, and defines the IV&V schedule of activities. While independent\nfrom the development and program management organization, the IV&V team provides its\nfindings in a timely manner to both of those organizations. The submission of findings to\nthe program management organization should not include any restrictions (e.g., requiring\nthe approval of the development organization) or any other adverse pressures from the\ndevelopment group.\nc. Financial independence requires that the control of the IV&V budget be vested in a\ngroup independent of the software development organization. Financial independence does\nnot necessarily mean that the IV&V team controls the budget but that the finances should\nbe structured so that funding is available for the IV&V team to complete its analysis or test\nwork. No adverse financial pressure or influence is applied."
+            },
+            {
+              "document": "NASA-STD-8739.8B",
+              "clause_id": "4.4.2.6",
+              "heading": "4.4 Independent Verification &Validation",
+              "page": 55,
+              "score": 0.7352,
+              "content": "4.4.2.6 The IV&V provider shall provide the responsible organizations’ project\nmanagement, engineering, and software assurance personnel insight into the software IV&V\nand IV&V test activities. As a minimum, the IV&V provider will be required to allow the\nresponsible organizations’ project management, engineering, and software assurance personnel\nto perform the following activities:\na. Monitor the IV&V activities and plans.\nb. Review the verification activities to ensure adequacy.\nc. Review IV&V studies and source data.\nd. Audit the software IV&V processes and practices.\ne. Participate in IV&V software reviews and technical interchange meetings"
+            },
+            {
+              "document": "NASA-STD-8739.8B",
+              "clause_id": "4.4.1.5",
+              "heading": "4.4 Independent Verification &Validation",
+              "page": 53,
+              "score": 0.7338,
+              "content": "4.4.1.5 The main goal of the IV&V effort is to identify and generate objective evidence that\nsupports the correct operation of the system or refutes the correct operation of the system. The\nIV&V provider typically works with the development team to understand this objective\nevidence, which provides artifacts such as concept studies, operations concepts, and\nrequirements that define the overall project. The IV&V provider uses these materials to\ndevelop an independent understanding of the project’s commitment to NASA, which forms the\nbasis for validating lower-level technical artifacts."
+            },
+            {
+              "document": "NASA-STD-8739.8B",
+              "clause_id": "4.4.1.1",
+              "heading": "4.4 Independent Verification &Validation",
+              "page": 52,
+              "score": 0.7278,
+              "content": "4.4.1.1 IV&V is a technical discipline of software assurance that employs rigorous analysis\nand testing methodologies to identify objective evidence and conclusions to provide an\nindependent assessment of critical products and processes throughout the software\ndevelopment life cycle. The evaluation of products and processes throughout the life cycle\ndemonstrates whether the software is fit for nominal operations (required functionality, safety,\ndependability, etc.) and off-nominal conditions (response to faults, responses to hazardous\nconditions, etc.). The goal of the IV&V effort is to contribute assurance conclusions provided\nto the project and stakeholders based on evidence found in software development artifacts and\nrisks associated with the intended behaviors of the software."
+            },
+            {
+              "document": "NASA-STD-8739.8B",
+              "clause_id": "4.4.2.4",
+              "heading": "4.4 Independent Verification &Validation",
+              "page": 54,
+              "score": 0.7262,
+              "content": "4.4.2.4 The IV&V provider shall provide analysis results, risks, and assurance statements\nand data to the responsible organizations’ project management, engineering, and software\nassurance personnel.\nNote: While independent, the IV&V provider is still a part of a project's overall safety and risk\nmitigation software assurance strategy. The results of IV&V analysis need to be incorporated\ninto the overall software assurance assessment of the project and provided to the project\nmanagement. The IV&V provider should support project milestone reviews and provide the\nproject with an evaluation of the life cycle review artifacts to assist development management\ndecisions on whether the review criteria have been met and how to proceed going forward."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "question": {
+        "id": "q09",
+        "source": "c17",
+        "type": "direct",
+        "question": "Who writes the IV&V project execution plan, and who has to agree to it?",
+        "expected": "The IV&V provider shall develop and negotiate the IPEP with the project (4.4.2.2); the Project SMA Technical Authority shall review and concur with it (4.4.2.3).",
+        "document": "NASA-STD-8739.8B",
+        "clause": "4.4.2.2, 4.4.2.3",
+        "page": 54,
+        "verified": true
+      },
+      "answers": {
+        "naive": {
+          "answer": "Based on the provided documents:\n\n* **Who writes/develops it:** \"The IV&V provider shall develop and negotiate an IV&V IPEP with the project\" [NASA-STD-8739.8B, page 54]. Additionally, if software IV&V is required, \"the project manager, in consultation with NASA IV&V, shall ensure an IPEP is developed, approved, maintained, and executed in accordance with IV&V requirements in NASA-STD-8739.8\" [NASA-STD-8739.8B, page 29].\n* **Who must agree to it:** \n  * It is negotiated \"with the project\" [NASA-STD-8739.8B, page 54].\n  * \"The Project SMA Technical Authority (TA) shall review and concur with the IPEP\" [NASA-STD-8739.8B, page 54].",
+          "refused": false,
+          "expected_page_retrieved": true,
+          "sources": [
+            {
+              "document": "NASA-STD-8739.8B",
+              "clause_id": null,
+              "heading": null,
+              "page": 54,
+              "score": 0.7874,
+              "content": "ck, through the execution of analysis, identification of issues\nand risks, and the collection of deeper mission understanding, allows IV&V projects to\n“Follow The Risk” and adjust plans. The planning and scoping effort also aid in establishing\nthe initial relationships between the IV&V provider, the Acquirer, and the Provider.\n4.4.2.2 The IV&V provider shall develop and negotiate an IV&V IPEP with the project.\nNote: The IPEP documents the activities, methods, level of rigor, environments, tailoring (if\nany)"
+            },
+            {
+              "document": "NASA-STD-8739.8B",
+              "clause_id": null,
+              "heading": null,
+              "page": 54,
+              "score": 0.7801,
+              "content": "g the risk assessment and\nresource constraints. The IPEP also serves as a communication tool between the project and\nIV&V to set expectations for the IV&V products produced throughout the life cycle. The IPEP\nmay require updating throughout the life cycle.\n4.4.2.3 The Project SMA Technical Authority (TA) shall review and concur with the IPEP.\n4.4.2.4 The IV&V provider shall provide analysis results, risks, and assurance statements\nand data to the responsible organizations’ project management, engineering, a"
+            },
+            {
+              "document": "NASA-STD-8739.8B",
+              "clause_id": null,
+              "heading": null,
+              "page": 54,
+              "score": 0.7649,
+              "content": " of the IV&V requirements, and criteria to be used in performing verification and\nvalidation of in-scope system/software behaviors (including responsible software components)\ndetermined by the planning and scoping effort. A Provider should use a documented analysis\napproach to track and manage the IV&V effort aligned with ongoing development project\nefforts. The IPEP documents which software products are subject to which analyses and which\nanalysis requirements are wholly, partially, or not applied followin"
+            },
+            {
+              "document": "NASA-STD-8739.8B",
+              "clause_id": null,
+              "heading": null,
+              "page": 53,
+              "score": 0.7595,
+              "content": " cycle development process. The\nIV&V requirements document the potential scope of analysis performed by the IV&V provider\nand the key responsibility of the software project to provide the information needed to perform\nthat analysis. Additionally, the risk assessment is used to scope the IV&V analysis to help\ndetermine the prioritization of activities and the level of rigor associated with performing those\nactivities. The scoping exercise results are captured in the IV&V Project Execution Plan, as\ndocumented"
+            },
+            {
+              "document": "NASA-STD-8739.8B",
+              "clause_id": null,
+              "heading": null,
+              "page": 29,
+              "score": 0.7518,
+              "content": "xplicitly by the Mission\nDirectorate Associate Administrator to have\nsoftware IV&V.\n3.6.3 131\nIf software IV&V is required for a project, the\nproject manager, in consultation with NASA\nIV&V, shall ensure an IPEP is developed,\napproved, maintained, and executed in\naccordance with IV&V requirements in NASA-\nSTD-8739.8.\n1. Confirm that the IV&V Project Execution Plan\n(IPEP) exists.\n3.6.4 178\nIf software IV&V is performed on a project, the\nproject manager shall ensure that IV&V is\nprovided access to development"
+            }
+          ]
+        },
+        "section_aware": {
+          "answer": "\"The IV&V provider shall develop and negotiate an IV&V IPEP with the project\" [NASA-STD-8739.8B, Clause 4.4.2.2]. \n\nAdditionally, if software IV&V is required, \"the project manager, in consultation with NASA IV&V, shall ensure an IPEP is developed, approved, maintained, and executed in accordance with IV&V requirements in NASA-STD-8739.8\" [NASA-STD-8739.8B, Clause 3.6.3], [NPR-7150.2D, Clause 3.6.3]. \n\n\"The Center SMA Director, will review the project’s IV&V ’Project Execution Plan (IPEP) to ensure it meets NASA IV&V criteria as defined in NASA-STD-8739.8\" [NPR-7150.2D, Clause 2.1.6.3].",
+          "refused": false,
+          "expected_page_retrieved": true,
+          "sources": [
+            {
+              "document": "NASA-STD-8739.8B",
+              "clause_id": "4.4.2.2",
+              "heading": "4.4 Independent Verification &Validation",
+              "page": 54,
+              "score": 0.7913,
+              "content": "4.4.2.2 The IV&V provider shall develop and negotiate an IV&V IPEP with the project.\nNote: The IPEP documents the activities, methods, level of rigor, environments, tailoring (if\nany) of the IV&V requirements, and criteria to be used in performing verification and\nvalidation of in-scope system/software behaviors (including responsible software components)\ndetermined by the planning and scoping effort. A Provider should use a documented analysis\napproach to track and manage the IV&V effort aligned with ongoing development project\nefforts. The IPEP documents which software products are subject to which analyses and which\nanalysis requirements are wholly, partially, or not applied following the risk assessment and\nresource constraints. The IPEP also serves as a communication tool between the project and\nIV&V to set expectations for the IV&V products produced throughout the life cycle. The IPEP\nmay require updating throughout the life cycle."
+            },
+            {
+              "document": "NASA-STD-8739.8B",
+              "clause_id": "3.6.3",
+              "heading": "4.3 Software Assurance and Software Safety Requirements",
+              "page": 29,
+              "score": 0.7678,
+              "content": "3.6.3 131\nIf software IV&V is required for a project, the\nproject manager, in consultation with NASA\nIV&V, shall ensure an IPEP is developed,\napproved, maintained, and executed in\naccordance with IV&V requirements in NASA-\nSTD-8739.8.\n1. Confirm that the IV&V Project Execution Plan\n(IPEP) exists."
+            },
+            {
+              "document": "NPR-7150.2D",
+              "clause_id": "2.1.6.3",
+              "heading": "2.1.6 Center SMA Director",
+              "page": 16,
+              "score": 0.7635,
+              "content": "2.1.6.3 The Center SMA Director, will review the project’s IV&V ’Project Execution Plan (IPEP) to\nensure it meets NASA IV&V criteria as defined in NASA-STD-8739.8."
+            },
+            {
+              "document": "NPR-7150.2D",
+              "clause_id": "3.6.3",
+              "heading": "3.6 Software Assurance and Software Independent Verification & Validation",
+              "page": 25,
+              "score": 0.7632,
+              "content": "3.6.3 If software IV&V is required for a project, the project manager, in consultation with NASA\nIV&V, shall ensure an IPEP is developed, approved, maintained, and executed in accordance with\nIV&V requirements in NASA-STD-8739.8. [SWE-131]\nNote: The IV&V Advisory Board will review the scope of NASA IV&V activities on an\nannual basis as part of the budget planning process."
+            },
+            {
+              "document": "NPR-7150.2D",
+              "clause_id": "3.6.3",
+              "heading": "C.3 Tailoring Guidance",
+              "page": 63,
+              "score": 0.7478,
+              "content": "3.6.3 131\nIf software IV&V is performed\non a project, the project\nmanager shall ensure an IPEP\nis developed, approved,\nmaintained, and executed in\naccordance with the IV&V\ncriteria defined in\nNASA-STD-8739.8.\nCenter\nX X"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "question": {
+        "id": "q10",
+        "source": "c18",
+        "type": "direct",
+        "question": "What are the successive levels at which the assurance standard's requirements get tailored?",
+        "expected": "Three levels - (a) the Software Classification Decision, (b) the project's Software Requirements Mapping Matrix, (c) tailoring by the Software Assurance TA of the standard's requirements that correspond to the project's mapping matrix.",
+        "document": "NASA-STD-8739.8B",
+        "clause": "4.5",
+        "page": 60,
+        "verified": true
+      },
+      "answers": {
+        "naive": {
+          "answer": "Software assurance, software safety, and IV&V requirements are tailored using the following successive levels:\n\n1. \"The first level of tailoring is the Software Classification Decision, see NPR 7150.2\" [NASA-STD-8739.8B, Page 60].\n2. \"The second level of tailoring is the project’s Software Requirements Mapping Matrix, see NPR 7150.2\" [NASA-STD-8739.8B, Page 60].\n3. The third level of tailoring is the tailoring by the Software Assurance TA of the Software Assurance and Software Safety Standard requirements that correspond to the project's Software Requirements Mapping Matrix requirements [NASA-STD-8739.8B, Page 60] [NASA-STD-8739.8B, Page 61].",
+          "refused": false,
+          "expected_page_retrieved": true,
+          "sources": [
+            {
+              "document": "NASA-STD-8739.8B",
+              "clause_id": null,
+              "heading": null,
+              "page": 61,
+              "score": 0.7266,
+              "content": "ssurance TA of the Software\nAssurance and Software Safety Standard requirements that correspond to the project’s\nSoftware Requirements Mapping Matrix requirements.\nThe Software Assurance and Software Safety Standard establishes a baseline set of\nrequirements for software assurance, software safety, and IV&V to reduce risks on NASA projects\nand programs. Each project has unique circumstances, and tailoring can modify the requirements\nset for software assurance, software safety, and IV&V effort. Determining t"
+            },
+            {
+              "document": "NASA-STD-8739.8B",
+              "clause_id": null,
+              "heading": null,
+              "page": 60,
+              "score": 0.7192,
+              "content": "d is governed by the\nfollowing steps. Tailoring at the Center level is decided by the SMA TA and the NPR 7150.2\nRequirements Mapping Matrix applicability. Tailor the software assurance, software safety, and\nIV&V requirements using the following levels:\na. The first level of tailoring is the Software Classification Decision, see NPR 7150.2.\nb. The second level of tailoring is the project’s Software Requirements Mapping Matrix, see\nNPR 7150.2.\nc. The third level of tailoring is the tailoring by the Software A"
+            },
+            {
+              "document": "NASA-STD-8739.8B",
+              "clause_id": null,
+              "heading": null,
+              "page": 60,
+              "score": 0.7187,
+              "content": "istent with program or project objectives, acceptable risk, and constraints. To\naccommodate the wide variety of software systems and subsystems, applying these requirements\nto specific software assurance, software safety, and IV&V efforts may be tailored where justified\nand approved. NASA established the TA governance model to approve and mitigate any changes\nto the Software Assurance and Software Safety Standard requirements. Tailoring from\nrequirements in the Software Assurance and Software Safety Standar"
+            },
+            {
+              "document": "NASA-STD-8739.8B",
+              "clause_id": null,
+              "heading": null,
+              "page": 18,
+              "score": 0.6977,
+              "content": " adjust a prescribed requirement to accommodate the needs of a\nspecific task or activity (e.g., program or project). Tailoring may result in changes, subtractions,\nor additions to a typical implementation of the requirement. (Source NPR 7150.2)\nTrack. To follow and note the course or progress of the product.\n4. SOFTWARE ASSURANCE AND SOFTWARE SAFETY\nREQUIREMENTS\n4.1 Software Assurance Description\nThe Software Assurance activities provide a level of confidence that software is free\nfrom vulnerabilities, eith"
+            },
+            {
+              "document": "NPR-7150.2D",
+              "clause_id": null,
+              "heading": null,
+              "page": 18,
+              "score": 0.6964,
+              "content": "ion. Each project has unique circumstances, and tailoring can be\nemployed to modify the requirements set appropriate for the software engineering effort. Tailoring\nof requirements is based on key characteristics of the software engineering effort, including\nacceptable technical and programmatic risk posture, Agency priorities, size, and complexity.\nRequirements can be tailored more broadly across a group of similar projects, a program, an\norganization, or other collection of similar software development eff"
+            }
+          ]
+        },
+        "section_aware": {
+          "answer": "Software assurance, software safety, and IV&V requirements are tailored using the following successive levels:\n\n1. **First level:** The Software Classification Decision, see NPR 7150.2 [NASA-STD-8739.8B, Clause 4.5].\n2. **Second level:** The project’s Software Requirements Mapping Matrix, see NPR 7150.2 [NASA-STD-8739.8B, Clause 4.5].\n3. **Third level:** The tailoring by the Software Assurance TA of the Software Assurance and Software Safety Standard requirements that correspond to the project’s Software Requirements Mapping Matrix requirements [NASA-STD-8739.8B, Clause 4.5].",
+          "refused": false,
+          "expected_page_retrieved": true,
+          "sources": [
+            {
+              "document": "NASA-STD-8739.8B",
+              "clause_id": "4.5",
+              "heading": "4.5 Principles Related to Tailoring the Standard Requirements",
+              "page": 60,
+              "score": 0.7139,
+              "content": "4.5 Principles Related to Tailoring the Standard Requirements\nThe SMA TA for the project shall review and approve any tailored Software Assurance\nand Software Safety Standard requirements.\nSoftware requirements tailoring is the process used to seek relief from standard\nrequirements consistent with program or project objectives, acceptable risk, and constraints. To\naccommodate the wide variety of software systems and subsystems, applying these requirements\nto specific software assurance, software safety, and IV&V efforts may be tailored where justified\nand approved. NASA established the TA governance model to approve and mitigate any changes\nto the Software Assurance and Software Safety Standard requirements. Tailoring from\nrequirements in the Software Assurance and Software Safety Standard is governed by the\nfollowing steps. Tailoring at the Center level is decided by the SMA TA and the NPR 7150.2\nRequirements Mapping Matrix applicability. Tailor the software assurance, software safety, and\nIV&V requirements using the following levels:\na. The first level of tailoring is the Software Classification Decision, see NPR 7150.2.\nb. The second level of tailoring is the project’s Software Requirements Mapping Matrix, see\nNPR 7150.2.\nc. The third level of tailoring is the tailoring by the Software Assurance TA of the Software\nAssurance and Software Safety Standard requirements that correspond to the project’s\nSoftware Requirements Mapping Matrix requirements.\nThe Software Assurance and Software Safety Standard establishes a baseline set of\nrequirements for software assurance, software safety, and IV&V to reduce risks on NASA projects\nand programs. Each project has unique circumstances, and tailoring can modify the requirements\nset for software assurance, software safety, and IV&V effort. Determining the tailoring of\nrequirements is a joint software engineering effort and SMA effort, including acceptable technical\nand programmatic risk posture, Agency priorities, size, and complexity. Requirements can be\ntailored more broadly across a group of similar projects, programs, organizations, or other\ncollections of similar software development efforts.\nPer SWE-121, the software assurance organization maintains a Requirements Mapping\nMatrix or multiple Requirements Mapping Matrices against requirements in the Software\nAssurance and Software Safety Standard, including those delegated to other parties or\naccomplished by contract vehicles. Per SWE-013 and SWE-039, the software assurance\norganization conducts risk assessment efforts to determine the software assurance, software safety,\nand IV&V tasks to be performed and the rigor of each task.\nThe request for relief from a requirement includes the rationale, a risk evaluation, and\n"
+            },
+            {
+              "document": "NASA-STD-8739.8B",
+              "clause_id": "1.1",
+              "heading": "1.1 Document Purpose",
+              "page": 6,
+              "score": 0.6862,
+              "content": "and testing methodologies to identify objective evidence and\nconclusions to provide an independent assessment of critical products and processes\nthroughout the life cycle.\nThe Software Assurance and Software Safety Standard is compatible with all software\nlife cycle models. The Software Assurance and Software Safety Standard does not impose a\nparticular life cycle model on a software project.\nIn this standard, all mandatory actions (i.e., requirements) are denoted by statements\ncontaining the term “shall.” The terms “may” denote a discretionary privilege or permission;\n“can” denotes statements of possibility or capability; “should” denotes a good practice and is\nrecommended; but not required, “will” denotes expected outcome; and “are/is” denotes\ndescriptive material."
+            },
+            {
+              "document": "NASA-STD-8739.8B",
+              "clause_id": "3.1.12",
+              "heading": "3.1 Software Life Cycle Planning",
+              "page": 24,
+              "score": 0.6737,
+              "content": "3.1.12 121\nWhere approved, the project manager shall\ndocument and reflect the tailored requirement in\nthe plans or procedures controlling the\ndevelopment, acquisition, and deployment of the\naffected software.\n1. Confirm that any requirement tailoring in the\nRequirements Mapping Matrix has the required\napprovals.\n2. Develop a tailoring matrix of software assurance\nand software safety requirements."
+            },
+            {
+              "document": "NPR-7150.2D",
+              "clause_id": "3.1.12",
+              "heading": "3.1 Software Life Cycle Planning",
+              "page": 58,
+              "score": 0.6698,
+              "content": "3.1.12 121\nWhere approved, the project\nmanager shall document and\nreflect the tailored requirement\nin the plans or procedures\ncontrolling the development,\nacquisition, and deployment of\nthe affected software.\nCenter\nX X X X X\nCIO\nX"
+            },
+            {
+              "document": "NASA-STD-8739.8B",
+              "clause_id": "4.5",
+              "heading": "4.5 Principles Related to Tailoring the Standard Requirements",
+              "page": 61,
+              "score": 0.6685,
+              "content": "Safety Standard, including those delegated to other parties or\naccomplished by contract vehicles. Per SWE-013 and SWE-039, the software assurance\norganization conducts risk assessment efforts to determine the software assurance, software safety,\nand IV&V tasks to be performed and the rigor of each task.\nThe request for relief from a requirement includes the rationale, a risk evaluation, and\nreference to all material that justifies supporting acceptance. The organization submitting the\ntailoring request informs the next higher level of involved management of the tailoring request in a\ntimely manner. The dispositioning organization reviews the request with the other organizations\nthat could be impacted or have a potential risk (i.e., to safety, quality, cybersecurity, health) with\nthe proposed changes and obtains the concurrence of those organizations.\nIf a system or subsystem development evolves to meet a higher or lower software\nclassification defined in NPR 7150.2, the software assurance, software safety, and IV&V\norganizations shall update their plan(s) to fulfill the applicable requirements per the Requirements\nMapping Matrix and any approved changes and initiate adjustments to applicable contracts to meet\nthe modified requirements.\nThe responsibilities for approving changes to the software engineering requirements are\nin NPR 7150.2. When the requirement and software class are applicable, the projects record the\nrisk and rationale for any requirement not completely implemented by the project. The projects can\ndocument their related mitigations and risk acceptance in the approved Requirements Mapping\nMatrix.\nGUIDELINES FOR THE HAZARD DEVELOPMENT\nINVOLVING SOFTWARE"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "question": {
+        "id": "q11",
+        "source": "c20",
+        "type": "table",
+        "question": "What does software assurance have to do about cyclomatic complexity when a component exceeds the limit?",
+        "expected": "Perform or analyze cyclomatic complexity metrics on all identified safety-critical components and confirm a value of 15 or lower; if not, assure the developers provide a technically acceptable risk assessment, accepted by the proper technical authority, explaining why it must be higher than 15 and why the component cannot be restructured or why reducing it is not justified.",
+        "document": "NASA-STD-8739.8B",
+        "clause": "Table 1, row 3.7.5 (SWE-220)",
+        "page": 31,
+        "verified": true
+      },
+      "answers": {
+        "naive": {
+          "answer": "If a safety-critical software component does not have a cyclomatic complexity value of 15 or lower, software assurance must \"assure that software developers provide a technically acceptable risk assessment, accepted by the proper technical authority, explaining why the cyclomatic complexity value needs to be higher than 15 and why the software component cannot be structured to be lower than 15 or why the cost and risk of reducing the complexity to below 15 are not justified by the risk inherent in modifying the software component\" [NASA-STD-8739.8B, Page 31].",
+          "refused": false,
+          "expected_page_retrieved": true,
+          "sources": [
+            {
+              "document": "NASA-STD-8739.8B",
+              "clause_id": null,
+              "heading": null,
+              "page": 31,
+              "score": 0.7841,
+              "content": "l be reviewed and waived with rationale by\nthe project manager or technical approval\nauthority.\n1. Perform or analyze Cyclomatic Complexity\nmetrics on all identified safety-critical software\ncomponents.\n2. Confirm that all identified safety-critical software\ncomponents have a cyclomatic complexity value of\n15 or lower. If not, assure that software developers\nprovide a technically acceptable risk assessment,\naccepted by the proper technical authority, explaining\nwhy the cyclomatic complexity value needs to b"
+            },
+            {
+              "document": "NPR-7150.2D",
+              "clause_id": null,
+              "heading": null,
+              "page": 27,
+              "score": 0.7424,
+              "content": "quirement interpretation or\nincorrect assumptions do not escape this testing.\n3.7.5 If a project has safety-critical software, the project manager shall ensure all identified\nsafety-critical software components have a cyclomatic complexity value of 15 or lower. Any\nexceedance shall be reviewed and waived with rationale by the project manager or technical\napproval authority. [SWE-220]\nNote: Cyclomatic complexity is a metric used to measure the complexity of a software\nprogram. This metric measures independen"
+            },
+            {
+              "document": "NPR-7150.2D",
+              "clause_id": null,
+              "heading": null,
+              "page": 34,
+              "score": 0.7344,
+              "content": "to analyze the code during the development\nand testing phases to, at a minimum, detect defects, software security, code coverage, and software\ncomplexity. [SWE-135]\nNote: Although no maximum cyclomatic complexity score is required for non-safety critical\nsoftware, all software projects should regularly collect and maintain complexity metrics\nand use them to manage risk, either when high-complexity code must be modified, or\nproactively to improve the overall quality and maintenance of the code base. For safe"
+            },
+            {
+              "document": "NPR-7150.2D",
+              "clause_id": null,
+              "heading": null,
+              "page": 27,
+              "score": 0.7306,
+              "content": "t paths through the source code. The point of the\nrequirement is to minimize risk, minimize testing, and increase reliability associated with\nsafety-critical software code components, thus reducing the chance of software failure\nduring a hazardous event. The software developer should assess all software safety-critical\ncomponents with a cyclomatic complexity score over 15 for testability, maintainability, and\ncode quality. For more guidance on this requirement, see NASA-HDBK-2203.\n3.8 Automatic Generation o"
+            },
+            {
+              "document": "NASA-STD-8739.8B",
+              "clause_id": null,
+              "heading": null,
+              "page": 31,
+              "score": 0.7218,
+              "content": "e\nNPR\n7150.2\nSection\nSWE\n#\nNPR 7150.2 Requirement\nSoftware Assurance and Software Safety Tasks\nhigher than 15 and why the software component\ncannot be structured to be lower than 15 or why the\ncost and risk of reducing the complexity to below 15\nare not justified by the risk inherent in modifying the\nsoftware component.\n3.8 Automatic Generation of Software Source Code\n3.8.1 146\nThe project manager shall define the approach to\nthe automatic generation of software source code,\nincluding:\na. Validation and ver"
+            }
+          ]
+        },
+        "section_aware": {
+          "answer": "When a safety-critical software component does not have a cyclomatic complexity value of 15 or lower, Software Assurance and Software Safety tasks require them to \"assure that software developers provide a technically acceptable risk assessment, accepted by the proper technical authority, explaining why the cyclomatic complexity value needs to be higher than 15 and why the software component cannot be structured to be lower than 15 or why the cost and risk of reducing the complexity to below 15 are not justified by the risk inherent in modifying the software component\" [NASA-STD-8739.8B, Clause 3.7.5].",
+          "refused": false,
+          "expected_page_retrieved": true,
+          "sources": [
+            {
+              "document": "NASA-STD-8739.8B",
+              "clause_id": "3.7.5",
+              "heading": "3.7 Safety-Critical and Mission-Critical Software",
+              "page": 31,
+              "score": 0.7532,
+              "content": "3.7.5 220\nIf a project has safety-critical software, the\nproject manager shall ensure all identified safety-\ncritical software components have a cyclomatic\ncomplexity value of 15 or lower. Any exceedance\nshall be reviewed and waived with rationale by\nthe project manager or technical approval\nauthority.\n1. Perform or analyze Cyclomatic Complexity\nmetrics on all identified safety-critical software\ncomponents.\n2. Confirm that all identified safety-critical software\ncomponents have a cyclomatic complexity value of\n15 or lower. If not, assure that software developers\nprovide a technically acceptable risk assessment,\naccepted by the proper technical authority, explaining\nwhy the cyclomatic complexity value needs to be\nNPR\n7150.2\nSection\nSWE\n#\nNPR 7150.2 Requirement\nSoftware Assurance and Software Safety Tasks\nhigher than 15 and why the software component\ncannot be structured to be lower than 15 or why the\ncost and risk of reducing the complexity to below 15\nare not justified by the risk inherent in modifying the\nsoftware component."
+            },
+            {
+              "document": "NPR-7150.2D",
+              "clause_id": "3.7.5",
+              "heading": "3.7 Safety-Critical Software",
+              "page": 27,
+              "score": 0.7319,
+              "content": "3.7.5 If a project has safety-critical software, the project manager shall ensure all identified\nsafety-critical software components have a cyclomatic complexity value of 15 or lower. Any\nexceedance shall be reviewed and waived with rationale by the project manager or technical\napproval authority. [SWE-220]\nNote: Cyclomatic complexity is a metric used to measure the complexity of a software\nprogram. This metric measures independent paths through the source code. The point of the\nrequirement is to minimize risk, minimize testing, and increase reliability associated with\nsafety-critical software code components, thus reducing the chance of software failure\nduring a hazardous event. The software developer should assess all software safety-critical\ncomponents with a cyclomatic complexity score over 15 for testability, maintainability, and\ncode quality. For more guidance on this requirement, see NASA-HDBK-2203."
+            },
+            {
+              "document": "NPR-7150.2D",
+              "clause_id": "3.7.5",
+              "heading": "3.7 Safety-critical Software",
+              "page": 65,
+              "score": 0.7242,
+              "content": "3.7.5 220\nIf a project has safety-critical\nsoftware, the project manager\nshall ensure all identified\nsafety-critical software\ncomponents have a cyclomatic\ncomplexity value of 15 or\nlower. Any exceedance shall\nbe reviewed and waived with\nrationale by the project\nmanager or technical approval\nauthority.\nCenter\nX X X X"
+            },
+            {
+              "document": "NPR-7150.2D",
+              "clause_id": "4.4.4",
+              "heading": "4.4 Software Implementation",
+              "page": 34,
+              "score": 0.7126,
+              "content": "4.4.4 The project manager shall use static analysis tools to analyze the code during the development\nand testing phases to, at a minimum, detect defects, software security, code coverage, and software\ncomplexity. [SWE-135]\nNote: Although no maximum cyclomatic complexity score is required for non-safety critical\nsoftware, all software projects should regularly collect and maintain complexity metrics\nand use them to manage risk, either when high-complexity code must be modified, or\nproactively to improve the overall quality and maintenance of the code base. For safety\ncritical software, the analysis should take into account the requirements for cyclomatic\ncomplexity and code coverage as defined in 3.7.5 and 3.7.4 respectively."
+            },
+            {
+              "document": "NPR-7150.2D",
+              "clause_id": "4.5.10",
+              "heading": "4.5 Software Testing",
+              "page": 37,
+              "score": 0.6811,
+              "content": "4.5.10 The project manager shall verify code coverage is measured by analysis of the results of the\nexecution of tests. [SWE-190]\nNote: If it can be justified that the required percentage cannot be achieved by test\nexecution, the analysis, inspection, or review of design can be applied to the non-covered\ncode. The goal of the complementary analysis is to assess that the non-covered code\nbehavior is as expected."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "question": {
+        "id": "q12",
+        "source": "c22",
+        "type": "cross_reference",
+        "question": "How does a project obtain relief from a requirement of the software assurance standard, and who approves it?",
+        "expected": "Tailoring is documented as part of program/project requirements and approved by the responsible Center Technical Authority per NPR 8715.3 (1.4), which points to section 4.5 - there, the SMA TA for the project shall review and approve any tailored requirements.",
+        "document": "NASA-STD-8739.8B",
+        "clause": "1.4 -> 4.5",
+        "page": 6,
+        "verified": true
+      },
+      "answers": {
+        "naive": {
+          "answer": "I don't know based on these documents.",
+          "refused": true,
+          "expected_page_retrieved": false,
+          "sources": [
+            {
+              "document": "NASA-STD-8739.8B",
+              "clause_id": null,
+              "heading": null,
+              "page": 61,
+              "score": 0.799,
+              "content": "oftware\nAssurance and Software Safety Standard, including those delegated to other parties or\naccomplished by contract vehicles. Per SWE-013 and SWE-039, the software assurance\norganization conducts risk assessment efforts to determine the software assurance, software safety,\nand IV&V tasks to be performed and the rigor of each task.\nThe request for relief from a requirement includes the rationale, a risk evaluation, and\nreference to all material that justifies supporting acceptance. The organization submit"
+            },
+            {
+              "document": "NPR-7150.2D",
+              "clause_id": null,
+              "heading": null,
+              "page": 17,
+              "score": 0.7575,
+              "content": "uating the project’s Requirements Mapping Matrix for commitments to meet applicable\nrequirements in this directive, consistent with software classification.\n(3) Confirming that requirements marked “Not-Applicable” in the project’s Requirements Mapping\nMatrix are not relevant or not capable of being applied.\n(4) Determining whether the project’s risks, mitigations, and related requests for relief from\nrequirements designated with “X” in Appendix C are reasonable and acceptable.\n(5) Approving/disapproving req"
+            },
+            {
+              "document": "NPR-7150.2D",
+              "clause_id": null,
+              "heading": null,
+              "page": 18,
+              "score": 0.7573,
+              "content": "ked by this directive.\n2.2.5 The approval of the Authority designated in Appendix C is required for all tailoring of\nrequirements designated as “X.” The implementation approach used to meet each requirement is\ntypically determined by the appropriate software engineering management in conjunction with the\nproject.\nNote: The request for relief from a requirement includes the rationale, a risk evaluation,\nand reference to all material that justifies supporting acceptance. The organization\nsubmitting the tailor"
+            },
+            {
+              "document": "NPR-7150.2D",
+              "clause_id": null,
+              "heading": null,
+              "page": 22,
+              "score": 0.7503,
+              "content": "ces against requirements in this NPR, including those\ndelegated to other parties or accomplished by contract vehicles or Space Act Agreements.\n[SWE-125]\nNote: A project may have multiple software engineering requirements mapping matrices if\nneeded for multiple software components on a given project.\nNote: Project relief from an applicable “X” requirement can be granted only by the\ndesignated TAs, Engineering, and SMA, or, for security issues, the NASA CIO. The record\nof their approval of the tailored requir"
+            },
+            {
+              "document": "NPR-7150.2D",
+              "clause_id": null,
+              "heading": null,
+              "page": 17,
+              "score": 0.7477,
+              "content": "e process used to seek relief from NPR requirements\nconsistent with program or project objectives, acceptable risk, and constraints. To accommodate the\nNPR 7150.2D -- Chapter2\nNPR 7150.2D -- Chapter2\nwide variety of software systems and subsystems, application of these requirements to specific\nsoftware development efforts may be tailored where justified and approved. To effectively maintain\ncontrol over the application of requirements in this directive and to ensure proposed tailoring from\nspecific requirem"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
