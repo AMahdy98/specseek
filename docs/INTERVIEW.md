@@ -191,6 +191,16 @@ See `DECISIONS.md`. Short form so far:
 - Follow-up: How would you make it faster?
   A: Cache answers for repeated questions, then cache question embeddings; shorter context only if the evaluation shows quality holds. Streaming would improve perceived latency, not total time.
 
+**Frontend (phase 5, first pass)**
+- Q: How does the UI talk to the API?
+  A: A React + TypeScript page served by Vite. One file, `api.ts`, does all HTTP and turns every failure (error envelope, network failure, timeout) into one `ApiError`. TanStack Query holds the results: the document list and the answer are server state; the text being typed is client state in `useState`.
+- Follow-up: Why is a POST a query and not a mutation?
+  A: It only reads. The same question gives the same answer, so I key the cache on question + document filter: a repeated question costs no request, and a request nobody is waiting for is cancelled through the abort signal.
+- Follow-up: The LLM times out. What does the user see, and what happens on the way?
+  A: Provider times out → `GeminiProvider` retries 3 times → `ProviderError` → one handler maps it to 502 with code `provider_error` and the request ID → CORS headers are still added (outermost middleware) → `api.ts` builds an `ApiError` → the UI does not retry (the server already did) and shows "the language model is unavailable, try again in a minute" plus the request ID, which finds the log line.
+- Follow-up: The answer is model output. Is that safe to render?
+  A: It is untrusted text. React renders it as a text node, so markup shows up as characters; there is a test with an `<img onerror>` payload. I never use `dangerouslySetInnerHTML`.
+
 ## 9. Concept answers
 
 ### What is RAG, why use it, and what are the alternatives?

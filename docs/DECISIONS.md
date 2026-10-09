@@ -377,6 +377,28 @@ Format: **Decision** / Alternative rejected / Why. Only choices actually made go
   reports a bare network failure and the UI cannot show the error message or request ID.
 - `X-Request-ID` and `Server-Timing` are exposed to JavaScript explicitly.
 
+## 2026-10-06: Frontend: the answer is a TanStack *query*, not a mutation
+- `POST /v1/query` is a read: same question + same document filter gives the same answer
+  (temperature 0). `useAnswer` is a `useQuery` keyed on `['answer', question, documentId]`, so a
+  repeated question is served from the browser's cache and an in-flight request is cancelled
+  when it is no longer needed. **Rejected:** `useMutation` (the usual choice for POST): no
+  caching by key, no automatic cancellation.
+- `staleTime: Infinity`, no refetch on focus/reconnect: every call spends provider quota.
+- Known gap: the browser cache is not invalidated when a document is re-ingested (30-minute
+  lifetime, cleared on reload). Acceptable while there is no ingest UI.
+
+## 2026-10-06: Frontend retries only a network failure, once
+- **Rejected:** TanStack Query's default of 3 retries with backoff on any error. A 4xx fails the
+  same way again; on a 502 the server has already retried the provider 3 times, so 3 client
+  retries would mean up to 12 generations for one click, against 500 per day.
+
+## 2026-10-06: Frontend tooling
+- Vitest + React Testing Library + jsdom added with the user's approval (not in the original
+  stack). Tests stub `fetch`; no mock-server library.
+- Project files written by hand rather than from the `create-vite` template (no unused assets).
+  **Not added:** ESLint; type errors are caught by `tsc --noEmit` in strict mode.
+- The API base URL comes from `VITE_API_URL` at build time (default `http://localhost:8000`).
+
 ## Future work (explicitly out of scope)
 - Token-bucket rate limiter and LLM response cache on `/v1/query` (optional items, not built yet).
 - **User accounts and saved chats per user** (requested 2026-10-03; auth, multi-user and

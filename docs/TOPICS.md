@@ -15,7 +15,7 @@ Partial means some of the topic exists; the pointer says which part.
 | Validation layers + exception hierarchy | 1 | built | `app/errors.py`, `app/api/error_handlers.py`; raised by `parser.py`, `service.py` (path guard), `llm.py` |
 | Error handling backend → frontend (LLM timeout) | 3, 5 | built (partial: timeout → retries → `ProviderError` → 502 envelope; UI in phase 5) | `app/llm.py:_post`, `tests/test_query.py:test_llm_timeout_becomes_a_502_error_envelope` |
 | Parameterized queries / SQL injection | 1 | built | `app/ingest/store.py` (every value is a `%s` parameter) |
-| CORS | 5 | — | |
+| CORS | 5 | built | `app/main.py` (CORSMiddleware, outermost), `app/config.py` (`CORS_ALLOWED_ORIGINS`), `tests/test_cors.py` |
 | Rate limiting, token bucket (opt) | 3 | — (optional; not built) | |
 | LLM response cache (opt) | 3 | — (optional; not built) | |
 | Observability: JSON logs, request ID, stage timing | 1, 3 | built | `app/logging_config.py`, `app/api/middleware.py`; `query_complete` (embed/search/generate ms) in `app/rag.py`, `ingest_complete` in `app/ingest/service.py` |
@@ -35,12 +35,12 @@ Partial means some of the topic exists; the pointer says which part.
 | Kubernetes & IaC (study only) | 6 | — | |
 | RAG end to end | 2–4 | built and evaluated (EVAL.md) | `app/ingest/`, `app/llm.py`, `app/retrieval.py`, `app/prompt.py`, `app/rag.py` |
 | Vector DB choice (pgvector vs dedicated) | 3 | studied | DECISIONS.md, "Retrieval = top-5 by cosine similarity" |
-| TanStack Query, server vs client state | 5 | — | |
+| TanStack Query, server vs client state | 5 | built | `frontend/src/hooks.ts` (`useDocuments`, `useAnswer`, `shouldRetry`); client state in `QuestionForm.tsx`, `App.tsx` |
 | State management comparison | 5 | — | |
 | Hooks (effects, cleanup, memoization with measurement) | 5 | — | |
 | Rendering (reconciliation, StrictMode, Profiler) | 5 | — | |
-| Lazy loading, skeletons, Fragments | 5 | — | |
-| XSS-safe rendering of LLM output | 5 | — | |
+| Lazy loading, skeletons, Fragments | 5 | partial: skeleton + Fragment built; lazy loading not yet | `AnswerSkeleton` in `AnswerPanel.tsx`, `<>` in `CitationList.tsx` |
+| XSS-safe rendering of LLM output | 5 | built | `AnswerPanel.tsx` (text node, no `dangerouslySetInnerHTML`); test "renders HTML in the model output as plain text" |
 | JS/TS fundamentals (scope, closures, `this`, event loop) | 5 | — | |
 
 ## C. Study only

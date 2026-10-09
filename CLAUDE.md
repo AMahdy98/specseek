@@ -216,6 +216,18 @@ Auth, multi-user, rerankers, hybrid/BM25 search, conversation memory, streaming 
   **Next:** user decides: optional backend items (token-bucket limiter at 15/min, answer cache, ETag) or straight to
   Phase 5 (React UI). Recommendation given: go to Phase 5; the one-week backend stop (from 2026-09-29) has passed.
 
+- **2026-10-06, session 7 (cont.):** Phase 5 first pass done. Backend: CORS (`CORS_ALLOWED_ORIGINS`, default Vite
+  dev server; outermost middleware; exposes `X-Request-ID`, `Server-Timing`), 146 backend tests. Node 24 via nvm in WSL.
+  `frontend/` (React 19 + TS + Vite 8 + TanStack Query 5; Vitest + React Testing Library approved by the user):
+  `api.ts`, `hooks.ts`, `QuestionForm`, `AnswerPanel` (+ skeleton), `CitationList`, `ErrorMessage`; 18 frontend tests,
+  `tsc` strict clean, production build 81 kB gzipped JS. Checked live in the browser: documents load, a real question
+  returns answer + citations + stage timings. Run: `cd frontend && npm run dev` → http://localhost:5173.
+  **Not done yet in Phase 5:** state-management comparison, hooks deep-dive (`useEffect` vs `useLayoutEffect`,
+  `useMemo`/`useCallback` with a measurement), React DevTools Profiler experiments, lazy loading, JS/TS fundamentals
+  exercises, the LLM-timeout error seen live in the UI (only tested), INTERVIEW.md walkthrough/diagram update for the UI,
+  Phase 5 explain-back + five-question drill; re-drill items from Phase 4 (TOPICS.md).
+  **Next:** user answers the 3 check questions; then the Phase 5 teaching experiments above.
+
 ## First session
 1. Save this brief to `CLAUDE.md`.
 2. Ask me, in one message: whether Docker (and which setup), uv, Node and gcloud are already installed in WSL; which LLM/embedding API keys I have; which standards PDFs I already have access to. Then verify with commands (`docker --version`, `uv --version`, `node -v`, `which python3`) instead of taking my word for it.
