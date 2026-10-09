@@ -36,12 +36,12 @@ Partial means some of the topic exists; the pointer says which part.
 | RAG end to end | 2–4 | built and evaluated (EVAL.md) | `app/ingest/`, `app/llm.py`, `app/retrieval.py`, `app/prompt.py`, `app/rag.py` |
 | Vector DB choice (pgvector vs dedicated) | 3 | studied | DECISIONS.md, "Retrieval = top-5 by cosine similarity" |
 | TanStack Query, server vs client state | 5 | built | `frontend/src/hooks.ts` (`useDocuments`, `useAnswer`, `shouldRetry`); client state in `QuestionForm.tsx`, `App.tsx` |
-| State management comparison | 5 | — | |
-| Hooks (effects, cleanup, memoization with measurement) | 5 | — | |
-| Rendering (reconciliation, StrictMode, Profiler) | 5 | — | |
-| Lazy loading, skeletons, Fragments | 5 | partial: skeleton + Fragment built; lazy loading not yet | `AnswerSkeleton` in `AnswerPanel.tsx`, `<>` in `CitationList.tsx` |
+| State management comparison | 5 | studied | DECISIONS.md 2026-10-09; INTERVIEW.md frontend ladder |
+| Hooks (effects, cleanup, memoization with measurement) | 5 | built (`useEffect` + cleanup; memoization measured and not used); `useLayoutEffect` studied only | `useElapsedSeconds` in `hooks.ts`; PERF.md frontend section |
+| Rendering (reconciliation, StrictMode, Profiler) | 5 | built (Profiler measurement, render-count test); user's own DevTools experiments pending | PERF.md frontend section; `render.test.tsx` |
+| Lazy loading, skeletons, Fragments | 5 | built (lazy measured: no gain here) | `AnswerSkeleton` in `AnswerPanel.tsx`, `<>` in `CitationList.tsx` |
 | XSS-safe rendering of LLM output | 5 | built | `AnswerPanel.tsx` (text node, no `dangerouslySetInnerHTML`); test "renders HTML in the model output as plain text" |
-| JS/TS fundamentals (scope, closures, `this`, event loop) | 5 | — | |
+| JS/TS fundamentals (scope, closures, `this`, event loop) | 5 | in progress: stale closure shown in `useElapsedSeconds`; 4 predict-the-output exercises asked 2026-10-09 | `hooks.ts` |
 
 ## C. Study only
 

@@ -236,6 +236,16 @@ Auth, multi-user, rerankers, hybrid/BM25 search, conversation memory, streaming 
   lazy loading, JS/TS exercises, seeing an error live in the UI), INTERVIEW.md walkthrough/diagram update for the UI,
   Phase 5 five-question drill, Phase 4 re-drill items.
 
+- **2026-10-09, session 8 (cont.):** Phase 5 teaching items built/measured: `useElapsedSeconds` (`useEffect` + cleanup,
+  "Still working… N s" in `AnswerSkeleton.tsx`), lazy-loaded `AnswerPanel` (`lazy` + `Suspense`, measured: no gain),
+  render-cost measurement with React Profiler (PERF.md frontend section: 0 panel renders while typing; lifted state ~1 ms per
+  keystroke; no memoization used), both error paths seen live (API down: 1 retry; 502: no retry, request ID shown).
+  20 frontend tests, 149 backend tests. State-management comparison in DECISIONS.md.
+  **Open:** user answers the 4 JS predict-the-output exercises and does the 3 DevTools experiments by hand;
+  `useLayoutEffect` explained only; INTERVIEW.md 90-second walkthrough + diagram still lack the UI;
+  Phase 5 five-question drill; Phase 4 re-drill items (TOPICS.md).
+  **Next:** grade the JS exercises, then the Phase 5 drill, then Phase 6 (Cloud Run; decide rate limiter first).
+
 ## First session
 1. Save this brief to `CLAUDE.md`.
 2. Ask me, in one message: whether Docker (and which setup), uv, Node and gcloud are already installed in WSL; which LLM/embedding API keys I have; which standards PDFs I already have access to. Then verify with commands (`docker --version`, `uv --version`, `node -v`, `which python3`) instead of taking my word for it.

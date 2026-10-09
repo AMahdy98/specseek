@@ -201,6 +201,14 @@ See `DECISIONS.md`. Short form so far:
 - Follow-up: The answer is model output. Is that safe to render?
   A: It is untrusted text. React renders it as a text node, so markup shows up as characters; there is a test with an `<img onerror>` payload. I never use `dangerouslySetInnerHTML`.
 
+**Frontend: rendering and state**
+- Q: Why no Redux, and no `useMemo`?
+  A: Three pieces of client state, each used where it lives; server data is in TanStack Query. For memoization I measured: typing re-renders the answer panel 0 times because the typed text is state of the form. With the state lifted it costs about 1 ms per keystroke, against a 16.7 ms frame. So no memo; I would re-measure with long lists.
+- Follow-up: Where do you use `useEffect`, and what is the cleanup for?
+  A: One place: the "still working… N s" counter starts a browser interval after the skeleton appears and clears it when the skeleton goes away. Without the cleanup the timer leaks. The callback uses `setSeconds(s => s + 1)`; `setSeconds(seconds + 1)` would be a stale closure stuck at 1. Data fetching does not use effects; TanStack Query does that.
+- Follow-up: Did lazy loading help?
+  A: No, and I measured it: the panel is 0.7 kB gzipped and the initial bundle grew by 0.3 kB. Lazy loading pays for big chunks not needed on the first screen.
+
 ## 9. Concept answers
 
 ### What is RAG, why use it, and what are the alternatives?

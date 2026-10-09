@@ -409,6 +409,23 @@ Format: **Decision** / Alternative rejected / Why. Only choices actually made go
   the UI would treat it identically.
 - Ingestion is not under the deadline and keeps the 60 s per-attempt timeout.
 
+## 2026-10-09: No `memo` / `useMemo` / `useCallback` in the UI; state kept local instead
+- Measured (PERF.md): with the typed text as state of `QuestionForm`, typing re-renders the answer
+  panel 0 times. Lifting it to `App` costs about 1 ms per keystroke; `memo` removes that again.
+- **Rejected:** memoizing by default. It adds comparison code and dependency arrays that can go
+  stale, for no measurable gain at 5 citations.
+
+## 2026-10-09: Answer panel is lazy-loaded although it does not pay off
+- Measured: initial JS 80.91 → 81.19 kB gzipped, lazy chunk 0.68 kB. Kept as a worked example of
+  `lazy` + `Suspense` + preloading on submit, with the numbers stated in the code comment.
+  **Alternative:** remove it; the UI would be 0.28 kB smaller and a few lines simpler.
+
+## 2026-10-09: State management: `useState` + TanStack Query, nothing else
+- Three pieces of client state (typed text, selected document, last submitted question), each
+  used by one component or passed one level down. **Rejected:** Context (nothing is needed deep
+  in the tree), `useReducer` (no state with several interdependent transitions), Redux (a global
+  store for three values; and the server data it would hold is exactly what TanStack Query manages).
+
 ## Future work (explicitly out of scope)
 - Token-bucket rate limiter and LLM response cache on `/v1/query` (optional items, not built yet).
 - **User accounts and saved chats per user** (requested 2026-10-03; auth, multi-user and

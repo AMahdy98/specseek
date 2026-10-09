@@ -109,6 +109,45 @@ from several seconds to about 1.3 s.
 5. **Streaming the answer** would cut *perceived* latency (first words sooner), not total time. It is
    on the do-not-build list for this project.
 
+## Frontend measurements (2026-10-09)
+### Bundle size (production build, `npm run build`)
+| Build | Initial JS (gzip) | Lazy chunk (gzip) |
+|---|---|---|
+| Everything in one file | 80.91 kB | none |
+| Answer panel lazy-loaded | 81.19 kB | 0.68 kB |
+
+Lazy-loading the answer panel made the initial download 0.28 kB *larger* (the loading
+machinery costs more than the 0.68 kB it moves out). Almost all of the bundle is React and
+TanStack Query, which every screen needs. Lazy loading pays when a chunk is large and not
+needed for the first screen; here it is kept only as the pattern.
+
+### Does typing re-render the answer? (render cost per keystroke)
+Method: development build, React `<Profiler>` around the app and around the answer panel, an
+answer with 5 citations on screen, then 30 single-character input events. Temporary
+instrumentation, removed afterwards. One run per design; development builds are slower than
+production, so these are upper bounds.
+
+| Design | Answer panel renders | Panel render, median / max | Whole commit, median / max |
+|---|---|---|---|
+| Current: typed text is state of the form | 0 | — | 0.5 / 0.9 ms |
+| Typed text lifted into `App` | 30 | 1.0 / 2.3 ms | 1.3 / 2.6 ms |
+| Lifted, panel wrapped in `memo` | 0 (skipped 30 times) | 0 ms | 0.4 / 0.8 ms |
+
+- Keeping state next to the component that uses it gives the same result as `memo`, without `memo`.
+- Even the worst design costs about 1.3 ms per keystroke against a 16.7 ms frame at 60 Hz. With
+  5 citations, `memo` / `useMemo` / `useCallback` would add code and no visible benefit, so
+  none is used. It would be worth re-measuring with hundreds of rows or expensive formatting.
+- A test guards the current behaviour: `render.test.tsx`, "typing a new question does not
+  re-render the answer already on screen".
+
+### Error paths seen live in the browser
+| Situation | Requests to `/v1/query` | Time to message | Message |
+|---|---|---|---|
+| API stopped | 2 (one retry) | 3.4 s | "Could not reach the server…" |
+| API running without a provider key (502) | 1 (no retry) | under 1.6 s | "The language model is unavailable…" + request ID |
+
+A provider that hangs (the 50 s deadline) was not reproduced live; it is covered by a test.
+
 ## Limits of this measurement
 - One machine, one run, 36 requests, a provider whose latency varies by time of day.
 - No sustained or high-concurrency load; no failure injection.
