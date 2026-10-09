@@ -19,6 +19,11 @@ data/local/
 # Eval runs (raw answers, grading sheet, grades) ARE committed: they are the evidence
 # behind docs/EVAL.md.
 
+# Frontend
+node_modules/
+frontend/dist/
+frontend/.env.local
+
 # Editors / OS
 .vscode/
 .idea/
