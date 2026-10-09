@@ -159,3 +159,12 @@ Partial means some of the topic exists; the pointer says which part.
   Score: 1 correct, 4 partial. Pattern: the first half of a two-part question is answered, the
   second half is dropped. Re-drill: p95 by rank; the blocking-call staircase; limits of the
   latency claim; stating the eval result in counts.
+- 2026-10-09, Phase 5 first-pass check questions:
+  1. Preflight and whether curl is stopped: correct (add: the preflight is triggered by
+     `Content-Type: application/json`; CORS is enforced by browsers only).
+  2. UI retries on a 502: correct (zero; the server already tried 3 times; add: one retry only
+     when no response arrived at all).
+  3. Repeated question and the cache: correct (one request; stale answer after a re-ingest; add:
+     the same staleness after a prompt or model change on the server).
+  Both parts answered on all three. User asked for deeper explanations of the component code,
+  hooks/TanStack Query, CORS, server vs client state and the timeout path (given in chat).
