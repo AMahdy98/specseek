@@ -168,3 +168,9 @@ Partial means some of the topic exists; the pointer says which part.
      the same staleness after a prompt or model change on the server).
   Both parts answered on all three. User asked for deeper explanations of the component code,
   hooks/TanStack Query, CORS, server vs client state and the timeout path (given in chat).
+- 2026-10-09, JS fundamentals, 4 predict-the-output exercises (user has no prior JS/TS):
+  1. var vs let in a loop with setTimeout: not answered. 2. Stale closure in the timer: partial
+  (right that the callback sees the first render's 0; missed that the counter therefore sticks
+  at 1). 3. Sync / microtask / task order: not answered. 4. Lost this: not answered.
+  All four explained in chat with C++ mappings (capture by reference, call-site this).
+  Re-drill all four before the Phase 5 drill; StrictMode double render explained on request.
