@@ -24,14 +24,3 @@ export function AnswerPanel({ answer }: { answer: Answer }) {
     </section>
   )
 }
-
-/** Grey placeholder in the shape of an answer: the layout doesn't jump when the text arrives. */
-export function AnswerSkeleton() {
-  return (
-    <section aria-label="Loading answer" aria-busy="true" className="skeleton">
-      <div className="skeleton-line" />
-      <div className="skeleton-line" />
-      <div className="skeleton-line short" />
-    </section>
-  )
-}

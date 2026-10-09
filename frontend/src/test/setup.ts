@@ -6,4 +6,5 @@ import { afterEach, vi } from 'vitest'
 afterEach(() => {
   cleanup() // unmount what the test rendered
   vi.unstubAllGlobals() // put the real fetch back
+  vi.useRealTimers() // in case a test replaced the clock
 })

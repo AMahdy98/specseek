@@ -2,6 +2,7 @@
 // copies, their loading/error status, and decides when a copy is too old to trust.
 
 import { useQuery } from '@tanstack/react-query'
+import { useEffect, useState } from 'react'
 
 import { ApiError, askQuestion, listDocuments, type AskParams } from './api'
 
@@ -10,6 +11,24 @@ import { ApiError, askQuestion, listDocuments, type AskParams } from './api'
  *  3 times, and each client retry would spend 3 more generations of a 500/day quota. */
 export function shouldRetry(failureCount: number, error: Error): boolean {
   return error instanceof ApiError && error.code === 'network_error' && failureCount < 1
+}
+
+/** Whole seconds since the calling component appeared on screen.
+ *
+ *  useEffect is for syncing with something outside React; here, a browser timer. The effect
+ *  runs after the component is on screen; the function it returns is the cleanup, run when
+ *  the component leaves. Without the cleanup the interval would tick forever (a leak, like
+ *  a thread nobody joins). */
+export function useElapsedSeconds(): number {
+  const [seconds, setSeconds] = useState(0)
+  useEffect(() => {
+    // The updater form `s => s + 1` asks React for the latest value. `setSeconds(seconds + 1)`
+    // would be the classic stale closure: this callback is created once and would forever
+    // see the `seconds` of that first render (0), so the counter would stick at 1.
+    const timer = setInterval(() => setSeconds((s) => s + 1), 1000)
+    return () => clearInterval(timer)
+  }, []) // []: run once after mount, clean up at unmount
+  return seconds
 }
 
 export function useDocuments() {
