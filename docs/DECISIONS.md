@@ -399,6 +399,16 @@ Format: **Decision** / Alternative rejected / Why. Only choices actually made go
   **Not added:** ESLint; type errors are caught by `tsc --noEmit` in strict mode.
 - The API base URL comes from `VITE_API_URL` at build time (default `http://localhost:8000`).
 
+## 2026-10-09: Timeout budget for a question: 15 s per attempt, 50 s overall, UI 60 s
+- Each layer's timeout is shorter than its caller's: provider attempt 15 s < whole question
+  50 s (`QUERY_DEADLINE_SECONDS`) < UI request 60 s. Measured generation is p95 1.8 s, max 2.1 s.
+- **Rejected:** only shortening the per-attempt timeout (embed and generate could still add up
+  to about 100 s); **rejected:** only raising the UI timeout to 4 minutes (nobody waits that long).
+- A deadline expiry is reported as `ProviderError` → 502, like other provider failures.
+  **Alternative not taken:** a separate error mapped to 504 Gateway Timeout; more precise, but
+  the UI would treat it identically.
+- Ingestion is not under the deadline and keeps the 60 s per-attempt timeout.
+
 ## Future work (explicitly out of scope)
 - Token-bucket rate limiter and LLM response cache on `/v1/query` (optional items, not built yet).
 - **User accounts and saved chats per user** (requested 2026-10-03; auth, multi-user and

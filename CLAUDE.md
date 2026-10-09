@@ -228,6 +228,14 @@ Auth, multi-user, rerankers, hybrid/BM25 search, conversation memory, streaming 
   Phase 5 explain-back + five-question drill; re-drill items from Phase 4 (TOPICS.md).
   **Next:** user answers the 3 check questions; then the Phase 5 teaching experiments above.
 
+- **2026-10-09, session 8:** Phase 5 check questions: 3/3 correct (TOPICS.md). Deeper explanations given in chat
+  (hooks, TanStack Query, components, CORS, server vs client state, failure path). Timeout mismatch found and fixed:
+  interactive provider calls 15 s per attempt, whole question under a 50 s deadline (`QUERY_DEADLINE_SECONDS`), UI 60 s;
+  logged in BUGS.md (5 bugs) and DECISIONS.md. 149 backend tests, 18 frontend tests. Not verified against a real hang.
+  **Next:** remaining Phase 5 items (state-management comparison, hooks deep-dive with `useEffect`, Profiler experiments,
+  lazy loading, JS/TS exercises, seeing an error live in the UI), INTERVIEW.md walkthrough/diagram update for the UI,
+  Phase 5 five-question drill, Phase 4 re-drill items.
+
 ## First session
 1. Save this brief to `CLAUDE.md`.
 2. Ask me, in one message: whether Docker (and which setup), uv, Node and gcloud are already installed in WSL; which LLM/embedding API keys I have; which standards PDFs I already have access to. Then verify with commands (`docker --version`, `uv --version`, `node -v`, `which python3`) instead of taking my word for it.

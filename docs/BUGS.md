@@ -79,3 +79,22 @@ Real bugs only. Template:
   non-bold table section rows. After: 341 chunks, 19 under 80 chars (all real one-line clauses).
 - **What I'd do to catch it earlier:** include a contents page in the synthetic fixtures; I only
   modelled body pages.
+
+## 2026-10-09: The UI gave up on a hung provider before the server did
+- **Symptom:** none observed in use. Found by tracing the "LLM timeout" path on paper for the
+  interview guide, after the UI was built: the trace I had written could not be true.
+- **Root cause:** two timeouts chosen independently. The server waited up to 60 s per provider
+  attempt (the shared HTTP client's default, sized for embedding batches of 100 texts) and made
+  3 attempts for a question: about 3 minutes if the provider hangs. The UI's request timeout was
+  60 s. So on a real hang the user would see a client-side "took too long" with no request ID,
+  never the server's 502, while the server kept retrying for an answer nobody was waiting for.
+  Fast failures (503 busy, connection refused) were unaffected, which is why tests and manual
+  checks never showed it.
+- **Fix:** (1) interactive provider calls (question embedding, generation) time out after 15 s
+  per attempt; ingestion keeps 60 s. (2) `rag.answer_question` runs under one deadline of 50 s
+  (`asyncio.timeout`), below the UI's 60 s; on expiry the in-flight call is cancelled and a
+  `ProviderError` becomes the usual 502 with a request ID.
+- **Not verified live:** I could not make the real provider hang. Covered by tests with a fake
+  provider that never answers (`test_a_hung_provider_is_cut_off_at_the_deadline...`).
+- **What I'd do to catch it earlier:** write the timeout budget down end to end when adding a
+  caller: each layer's timeout must be shorter than the one above it.
