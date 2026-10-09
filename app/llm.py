@@ -37,6 +37,10 @@ _RETRYABLE_STATUS = {429, 500, 502, 503, 504}  # rate limited, or the provider's
 # Two retry budgets, because the caller's patience differs:
 _BATCH_ATTEMPTS = 6  # ingestion is a background-style job: waiting minutes is fine
 _INTERACTIVE_ATTEMPTS = 3  # a person is waiting for /v1/query: at most ~6 s of backoff
+# Per attempt, for interactive calls. The shared client's 60 s suits a batch of 100 texts;
+# for one question it would let a hung provider hold a waiting person for 3 x 60 s.
+# Measured generation: p95 1.8 s, max 2.1 s (docs/PERF.md), so 15 s is generous.
+_INTERACTIVE_TIMEOUT_SECONDS = 15.0
 _MAX_OUTPUT_TOKENS = 2048
 # Gemini embeds a passage and a question differently, so that a question lands near the
 # passages that answer it rather than near other questions.
@@ -60,6 +64,7 @@ class GeminiProvider:
 
     async def embed(self, texts: list[str], kind: EmbedKind) -> list[list[float]]:
         attempts = _BATCH_ATTEMPTS if kind == "document" else _INTERACTIVE_ATTEMPTS
+        timeout = None if kind == "document" else _INTERACTIVE_TIMEOUT_SECONDS
         vectors: list[list[float]] = []
         for start in range(0, len(texts), _BATCH_SIZE):
             batch = texts[start : start + _BATCH_SIZE]
@@ -75,7 +80,7 @@ class GeminiProvider:
                 ]
             }
             path = f"models/{self._embedding_model}:batchEmbedContents"
-            data = await self._post(path, payload, attempts)
+            data = await self._post(path, payload, attempts, timeout)
             embeddings = data.get("embeddings", [])
             if len(embeddings) != len(batch):
                 raise ProviderError("Embedding provider returned an unexpected number of vectors")
@@ -96,11 +101,16 @@ class GeminiProvider:
             },
         }
         path = f"models/{self._generation_model}:generateContent"
-        data = await self._post(path, payload, _INTERACTIVE_ATTEMPTS)
+        data = await self._post(path, payload, _INTERACTIVE_ATTEMPTS, _INTERACTIVE_TIMEOUT_SECONDS)
         return _answer_text(data)
 
-    async def _post(self, path: str, payload: dict, max_attempts: int) -> dict:
-        """POST with retries. Retries only what can succeed on a second try."""
+    async def _post(
+        self, path: str, payload: dict, max_attempts: int, attempt_timeout: float | None = None
+    ) -> dict:
+        """POST with retries. Retries only what can succeed on a second try.
+
+        `attempt_timeout` is seconds per attempt; None keeps the shared client's default.
+        """
         if not self._api_key:
             raise ProviderError("LLM provider is not configured (GEMINI_API_KEY is empty)")
 
@@ -111,6 +121,9 @@ class GeminiProvider:
                     json=payload,
                     # Key in a header, never in the URL: URLs end up in logs and proxies.
                     headers={"x-goog-api-key": self._api_key},
+                    timeout=httpx.USE_CLIENT_DEFAULT
+                    if attempt_timeout is None
+                    else attempt_timeout,
                 )
             except httpx.TransportError as exc:  # timeouts, DNS, connection reset
                 problem, delay = type(exc).__name__, _backoff(attempt)

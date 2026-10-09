@@ -293,6 +293,26 @@ async def test_interactive_calls_give_up_after_three_attempts():
     assert calls == 3
 
 
+async def test_interactive_calls_use_a_short_timeout_and_ingestion_keeps_the_default():
+    # A hung provider must not hold a waiting person for the client's full 60 s per attempt.
+    read_timeouts: list[float] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        read_timeouts.append(request.extensions["timeout"]["read"])
+        if request.url.path.endswith(":generateContent"):
+            return httpx.Response(200, json=_answer("ok"))
+        return _ok(request)
+
+    client = httpx.AsyncClient(transport=httpx.MockTransport(handler), timeout=60.0)
+    provider = GeminiProvider("test-key", client)
+
+    await provider.generate("s", "p")
+    await provider.embed(["a question"], kind="query")
+    await provider.embed(["a passage"], kind="document")
+
+    assert read_timeouts == [15.0, 15.0, 60.0]
+
+
 async def test_generate_recovers_from_one_overloaded_response():
     calls = 0
 

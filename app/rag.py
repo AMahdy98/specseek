@@ -3,6 +3,7 @@
 Knows nothing about HTTP (the evaluation script calls it directly). Raises domain errors.
 """
 
+import asyncio
 import logging
 import time
 from dataclasses import dataclass
@@ -10,7 +11,7 @@ from uuid import UUID
 
 from psycopg_pool import AsyncConnectionPool
 
-from app.errors import NotFound
+from app.errors import NotFound, ProviderError
 from app.ingest.types import Strategy
 from app.llm import Provider
 from app.prompt import PROMPT_VERSION, REFUSAL, SYSTEM_PROMPT, build_prompt
@@ -27,6 +28,13 @@ class QueryResult:
     timings_ms: dict[str, int]  # how long each stage took: embed, search, generate
 
 
+# The whole question must be answered or failed within this. It is deliberately below the
+# UI's 60 s timeout (frontend/src/api.ts), so the user gets our error with a request ID
+# instead of a client-side "took too long". Worst case without it: embed and generate each
+# use 3 attempts x 15 s plus backoff, about 100 s.
+QUERY_DEADLINE_SECONDS = 50.0
+
+
 async def answer_question(
     question: str,
     pool: AsyncConnectionPool,
@@ -34,12 +42,35 @@ async def answer_question(
     strategy: Strategy = "section_aware",
     document_id: UUID | None = None,
     query_vector: list[float] | None = None,
+    deadline_seconds: float | None = None,  # None: QUERY_DEADLINE_SECONDS
 ) -> QueryResult:
     """Answer `question` from the ingested documents.
 
     `query_vector` lets a caller that asks the same question several times (the evaluation,
     once per chunking strategy) embed it once and pass the vector in.
     """
+    if deadline_seconds is None:
+        deadline_seconds = QUERY_DEADLINE_SECONDS
+    try:
+        # On expiry asyncio cancels whatever is awaited inside (the HTTP call or a retry
+        # sleep), so no work continues for an answer nobody will receive.
+        async with asyncio.timeout(deadline_seconds):
+            return await _answer(question, pool, provider, strategy, document_id, query_vector)
+    except TimeoutError:
+        logger.error("query_deadline_exceeded", extra={"deadline_s": deadline_seconds})
+        raise ProviderError(
+            f"LLM provider did not answer within {deadline_seconds:.0f} seconds"
+        ) from None
+
+
+async def _answer(
+    question: str,
+    pool: AsyncConnectionPool,
+    provider: Provider,
+    strategy: Strategy,
+    document_id: UUID | None,
+    query_vector: list[float] | None,
+) -> QueryResult:
     started = time.perf_counter()
 
     # 1. Embed the question (as a *query*, so it lands near passages that answer it).

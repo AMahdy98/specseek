@@ -1,5 +1,7 @@
 """POST /v1/query end to end: real app, real test database, fake embedding + LLM."""
 
+import asyncio
+
 import httpx
 import psycopg
 import pytest
@@ -9,7 +11,7 @@ from app.api.routes import get_provider
 from app.errors import ProviderError
 from app.main import app
 from app.prompt import REFUSAL, SYSTEM_PROMPT
-from app.rag import answer_question
+from app.rag import QUERY_DEADLINE_SECONDS, answer_question
 from tests.seeding import add_chunk, add_document, axis
 
 
@@ -35,6 +37,20 @@ class FakeLLM:
 class TimingOutLLM(FakeLLM):
     async def generate(self, system: str, prompt: str) -> str:
         raise ProviderError("LLM provider unavailable after 3 attempts (ReadTimeout)")
+
+
+class HangingLLM(FakeLLM):
+    """A provider that never answers; records whether its call was cancelled."""
+
+    cancelled = False
+
+    async def generate(self, system: str, prompt: str) -> str:
+        try:
+            await asyncio.sleep(3600)
+        except asyncio.CancelledError:
+            self.cancelled = True
+            raise
+        return "unreachable"
 
 
 @pytest.fixture
@@ -222,6 +238,32 @@ async def test_a_supplied_query_vector_is_used_instead_of_embedding_again(api, d
     assert llm.embed_calls == []
     assert [chunk.content for chunk in result.sources] == ["naive window of text"]
     assert result.refused is False
+
+
+async def test_a_hung_provider_is_cut_off_at_the_deadline_and_reported_as_502(api, db):
+    client, _ = api
+    await _seed(db)
+    llm = HangingLLM()
+
+    with pytest.raises(ProviderError, match="did not answer within"):
+        await answer_question("Who assesses options?", app.state.pool, llm, deadline_seconds=0.05)
+    assert llm.cancelled  # the abandoned call was stopped, not left running
+
+    # Through HTTP it is the same 502 envelope the UI already handles.
+    app.dependency_overrides[get_provider] = lambda: llm
+    monkey = pytest.MonkeyPatch()
+    monkey.setattr("app.rag.QUERY_DEADLINE_SECONDS", 0.05)
+    try:
+        resp = await client.post("/v1/query", json={"question": "Who assesses options?"})
+    finally:
+        monkey.undo()
+    assert resp.status_code == 502
+    assert resp.json()["error"]["code"] == "provider_error"
+
+
+def test_the_server_deadline_is_below_the_ui_timeout():
+    # frontend/src/api.ts waits 60 s; the server must answer (or fail) first.
+    assert QUERY_DEADLINE_SECONDS < 60
 
 
 async def test_stage_timings_are_exposed_in_the_server_timing_header(api, db):
