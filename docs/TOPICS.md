@@ -30,8 +30,8 @@ Partial means some of the topic exists; the pointer says which part.
 | ID design (UUID v4 vs v7) | 1 | built | `app/schema.sql`, DECISIONS.md |
 | ORM vs raw SQL | 1 | — | |
 | Containers vs VMs, Dockerfile layers, Compose | 1 | built | `Dockerfile`, `docker-compose.yml` |
-| Cloud Run (scale to zero, cold starts, timeouts, SIGTERM) | 6 | — | |
-| Cloud Storage / signed URLs (opt) | 6 | — | |
+| Cloud Run (scale to zero, cold starts, timeouts, SIGTERM) | 6 | studied (not built: no deploy, see DECISIONS.md 2026-10-10) | INTERVIEW.md, "Deployment: studied, not done" |
+| Cloud Storage / signed URLs (opt) | 6 | studied (not built: no deploy, see DECISIONS.md 2026-10-10) | INTERVIEW.md, "Deployment: studied, not done" |
 | Kubernetes & IaC (study only) | 6 | — | |
 | RAG end to end | 2–4 | built and evaluated (EVAL.md) | `app/ingest/`, `app/llm.py`, `app/retrieval.py`, `app/prompt.py`, `app/rag.py` |
 | Vector DB choice (pgvector vs dedicated) | 3 | studied | DECISIONS.md, "Retrieval = top-5 by cosine similarity" |

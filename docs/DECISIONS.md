@@ -453,6 +453,19 @@ Format: **Decision** / Alternative rejected / Why. Only choices actually made go
   deploy, same origin so no CORS in production. **Rejected:** separate static hosting (a second
   deploy and a cross-origin setup for no benefit at this size).
 
+## 2026-10-10: No cloud deploy for now (phase 6 is study-only)
+- Every free container host checked needs a payment card or has dropped its free tier: Cloud Run
+  (card or other payment method to open a billing account), Render (asked for a card at
+  sign-up), Hugging Face Docker Spaces (paid plan), Koyeb (no free web service listed). No card
+  is available, so SpecSeek runs locally with Docker Compose only.
+- This replaces the two deploy choices recorded earlier today (Neon, UI served by the API's
+  service): still the plan if it is hosted later, but **not built and not tested**.
+- A Neon project was created by the user and is unused. Nothing was copied to it.
+- Consequence for the CV and interviews: say "containerized, runs with Docker Compose; not
+  deployed", and explain the Cloud Run design from INTERVIEW.md as a plan, not as experience.
+- If the company adopts it as an internal tool, the open points are listed in INTERVIEW.md
+  ("Deployment: studied, not done").
+
 ## Future work (explicitly out of scope)
 - Token-bucket rate limiter and LLM response cache on `/v1/query` (optional items, not built yet).
 - **User accounts and saved chats per user** (requested 2026-10-03; auth, multi-user and

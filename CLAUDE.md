@@ -265,6 +265,16 @@ Auth, multi-user, rerankers, hybrid/BM25 search, conversation memory, streaming 
   copy the dev database to Neon (pg_dump/restore, no re-embedding); Artifact Registry + Cloud Run deploy with
   max-instances 1 and the Gemini key in Secret Manager; measure cold start and Neon resume delay.
 
+- **2026-10-10, session 9 (end):** Rate limiter check questions 3/3 correct. **Phase 6 (cloud deploy) is skipped by the
+  user's decision**: GCP and Render both need a payment card, none available; other free hosts ruled out (DECISIONS.md).
+  Phase 6 is study-only: concepts taught in chat, written up in INTERVIEW.md ("Deployment: studied, not done"), TOPICS
+  rows marked `studied`. A Neon project exists (created by the user) but is unused; nothing was copied to it.
+  The user may host it later if the company adopts it as an internal tool (open points listed in INTERVIEW.md).
+  Do NOT describe SpecSeek as deployed anywhere (README, CV wording).
+  **Next:** Phase 6 check questions (asked), then Phase 7: README (Mermaid diagram, setup steps a stranger can follow,
+  eval summary), finalize INTERVIEW.md, final whiteboard drill. Optional before the README: serve the built UI from the
+  API container so `docker compose up` gives one URL (offered, not built). Re-drill backlog in TOPICS.md.
+
 ## First session
 1. Save this brief to `CLAUDE.md`.
 2. Ask me, in one message: whether Docker (and which setup), uv, Node and gcloud are already installed in WSL; which LLM/embedding API keys I have; which standards PDFs I already have access to. Then verify with commands (`docker --version`, `uv --version`, `node -v`, `which python3`) instead of taking my word for it.

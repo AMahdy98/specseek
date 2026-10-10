@@ -1,7 +1,7 @@
 # SpecSeek: interview study guide
 
 Accurate to the code as of **Phase 5** (backend, evaluation, latency measurement and the React UI
-are built and run locally with Docker Compose; nothing is deployed yet). It must not describe
+are built and run locally with Docker Compose; it is **not deployed**, see DECISIONS.md 2026-10-10). It must not describe
 unbuilt features as if they exist.
 
 ## 1. 90-second walkthrough
@@ -226,6 +226,28 @@ See `DECISIONS.md`. Short form so far:
   A: Each process has its own bucket, so the real limit triples. I cap Cloud Run at one instance. To scale out I would move the bucket to a shared store such as Redis, with an atomic check-and-decrement.
 - Follow-up: One user sends 1000 requests a minute. Do the others starve?
   A: With my single bucket, yes: it protects the quota, not fairness. The fix is a bucket per caller plus the global one, which needs a caller identity (an API key or login; an IP address is weak behind proxies). Beyond that, fair queuing: a queue per caller, served round-robin, so a heavy caller only delays their own requests.
+
+**Deployment: studied, not done**
+SpecSeek is not deployed (no payment card for any cloud free tier; DECISIONS.md 2026-10-10). This is
+the design I would follow, and what each part means. Say it as a plan.
+
+- Q: How would you deploy it?
+  A: Build the image, push it to Artifact Registry, run it on Cloud Run with max instances 1. Postgres on a hosted service with pgvector (Neon's free plan, or Cloud SQL if the company pays). The Gemini key and database URL come from Secret Manager as environment variables. The built React files are served by the same container, so one URL and no CORS in production.
+- Follow-up: What is Cloud Run, and what does "scale to zero" cost you?
+  A: It runs a container per request load and bills only while requests are handled. With no traffic it runs zero instances, so the next request waits for a cold start: start the container, import the app, apply the schema check, open the database pool. If the database also sleeps (Neon suspends after 5 idle minutes), that wake-up is added. The fix is a minimum of one instance, which costs money all the time.
+- Follow-up: What must a container do to run there?
+  A: Listen on the port given in the `PORT` variable; keep no state on local disk (it is temporary and per instance); take config from environment variables; handle SIGTERM by finishing in-flight requests within the grace period (about 10 s) before it is killed. SpecSeek already does the last three: config is env-only, the lifespan closes the pool on shutdown, and the only local files are read-only PDFs.
+- Follow-up: What in SpecSeek breaks or changes when it is hosted?
+  A: (1) The in-memory rate limiter is per instance: keep max instances at 1 or move it to a shared store. (2) The request timeout: Cloud Run's default is 5 minutes, my question deadline is 50 s, so queries fit; ingesting a large PDF is the risk (it took minutes on the free embedding quota) and would become a background job. (3) Ingest reads PDFs from a local folder: on a hosted service they would be uploaded to Cloud Storage, ideally by a signed URL so the file goes straight from the browser to the bucket and never through my API. (4) The database pool: 10 connections per instance times the number of instances must stay under the database's connection limit.
+- Follow-up: Env var or secret?
+  A: Both arrive as environment variables. A plain env var is visible in the service configuration to anyone who can view it; a secret is stored encrypted, access is per identity and logged, and it can be rotated without rebuilding. Model names and limits are env vars; the API key and database URL are secrets.
+
+If the company adopts it as an internal tool, open points before hosting:
+- **Who may use it:** it has no authentication. Behind the company network or an identity-aware proxy at minimum.
+- **Licensed standards:** the reason `data/local/` is never committed. Check each licence allows storing the text and showing excerpts to colleagues.
+- **Where questions and passages are sent:** to the LLM provider. A free-tier API key is the wrong choice for company documents; check the provider's data-use terms for the paid tier (not verified by me).
+- **Quota and cost:** 500 generations a day will not serve a team; the per-query token estimate is in PERF.md.
+- **Evaluation:** the 20-question set is on public documents. A new corpus needs its own questions before anyone trusts the answers.
 
 ## 9. Concept answers
 
