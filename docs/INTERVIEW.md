@@ -1,6 +1,7 @@
 # SpecSeek: interview study guide
 
-Accurate to the code as of **Phase 3** (the full pipeline works: ingest, retrieve, generate, cite; all 4 public documents are in the database; the evaluation has not been run yet).
+Accurate to the code as of **Phase 5** (backend, evaluation, latency measurement and the React UI
+are built and run locally with Docker Compose; nothing is deployed yet). It must not describe
 unbuilt features as if they exist.
 
 ## 1. 90-second walkthrough
@@ -21,7 +22,9 @@ an answer can cite 'NPR 7150.2D, clause 3.1.2'. I wrote a 20-question evaluation
 
 Around that core it's an ordinary production-style service: FastAPI, async end to end, Docker,
 one error format, JSON logs with a request ID, an idempotent ingest endpoint, and cursor
-pagination. I wrote the pipeline myself instead of using LangChain so I can explain every step."
+pagination. In front of it is a small React and TypeScript page: a question box, the answer, and
+the passages it was built from. I wrote the pipeline myself instead of using LangChain so I can
+explain every step."
 
 Eval sentence to add when speaking: "On my 20-question set, graded by hand, the section-aware
 strategy got 14 of 18 answerable questions right and the naive one 10; both refused the two
@@ -31,7 +34,9 @@ proof, and I can tell you exactly why each failure happened."
 ## 2. Architecture
 ```mermaid
 flowchart LR
-  User -->|"POST /v1/query<br/>POST /v1/ingest"| API
+  User --> UI["React UI (Vite, :5173)<br/>TanStack Query"]
+  UI -->|"CORS: GET /v1/documents<br/>POST /v1/query"| API
+  Operator["curl"] -->|"POST /v1/ingest"| API
   subgraph Compose
     API["api container<br/>uvicorn + FastAPI"]
     DB[("db container<br/>Postgres 16 + pgvector<br/>documents, chunks(vector 768)")]
@@ -42,7 +47,9 @@ flowchart LR
 ```
 
 Whiteboard version, five boxes left to right:
-**Client → API (FastAPI) → [Embedding model] → Postgres + pgvector → [LLM] → answer + citations.**
+**React UI → API (FastAPI) → [Embedding model] → Postgres + pgvector → [LLM] → answer + citations.**
+The UI and the API are different origins (ports 5173 and 8000), which is why the API has CORS.
+Ingestion has no UI; it is called with curl.
 Draw ingestion as a second arrow into Postgres: PDF → parse → chunk (naive / section-aware) → embed → store.
 
 Startup: `apply_schema` (advisory lock + idempotent DDL) → `open_pool` (fail fast if DB down) → shared `httpx.AsyncClient`.

@@ -15,7 +15,7 @@ Partial means some of the topic exists; the pointer says which part.
 | Validation layers + exception hierarchy | 1 | built | `app/errors.py`, `app/api/error_handlers.py`; raised by `parser.py`, `service.py` (path guard), `llm.py` |
 | Error handling backend → frontend (LLM timeout) | 3, 5 | built (partial: timeout → retries → `ProviderError` → 502 envelope; UI in phase 5) | `app/llm.py:_post`, `tests/test_query.py:test_llm_timeout_becomes_a_502_error_envelope` |
 | Parameterized queries / SQL injection | 1 | built | `app/ingest/store.py` (every value is a `%s` parameter) |
-| CORS | 5 | built | `app/main.py` (CORSMiddleware, outermost), `app/config.py` (`CORS_ALLOWED_ORIGINS`), `tests/test_cors.py` |
+| CORS | 5 | drilled | `app/main.py` (CORSMiddleware, outermost), `app/config.py` (`CORS_ALLOWED_ORIGINS`), `tests/test_cors.py` |
 | Rate limiting, token bucket (opt) | 3 | — (optional; not built) | |
 | LLM response cache (opt) | 3 | — (optional; not built) | |
 | Observability: JSON logs, request ID, stage timing | 1, 3 | built | `app/logging_config.py`, `app/api/middleware.py`; `query_complete` (embed/search/generate ms) in `app/rag.py`, `ingest_complete` in `app/ingest/service.py` |
@@ -35,7 +35,7 @@ Partial means some of the topic exists; the pointer says which part.
 | Kubernetes & IaC (study only) | 6 | — | |
 | RAG end to end | 2–4 | built and evaluated (EVAL.md) | `app/ingest/`, `app/llm.py`, `app/retrieval.py`, `app/prompt.py`, `app/rag.py` |
 | Vector DB choice (pgvector vs dedicated) | 3 | studied | DECISIONS.md, "Retrieval = top-5 by cosine similarity" |
-| TanStack Query, server vs client state | 5 | built | `frontend/src/hooks.ts` (`useDocuments`, `useAnswer`, `shouldRetry`); client state in `QuestionForm.tsx`, `App.tsx` |
+| TanStack Query, server vs client state | 5 | drilled | `frontend/src/hooks.ts` (`useDocuments`, `useAnswer`, `shouldRetry`); client state in `QuestionForm.tsx`, `App.tsx` |
 | State management comparison | 5 | studied | DECISIONS.md 2026-10-09; INTERVIEW.md frontend ladder |
 | Hooks (effects, cleanup, memoization with measurement) | 5 | built (`useEffect` + cleanup; memoization measured and not used); `useLayoutEffect` studied only | `useElapsedSeconds` in `hooks.ts`; PERF.md frontend section |
 | Rendering (reconciliation, StrictMode, Profiler) | 5 | built (Profiler measurement, render-count test); user's own DevTools experiments pending | PERF.md frontend section; `render.test.tsx` |
@@ -178,3 +178,16 @@ Partial means some of the topic exists; the pointer says which part.
   correct. 2. Which value handleSubmit sees: correct on the value (the latest), the reason not
   given (the function is re-created on every render, so it closes over that render's values; a
   closure goes stale only when it is created once and kept, as in an effect with []).
+- 2026-10-10, Phase 5 drill (5 questions, one at a time):
+  1. Which tool holds the document list vs the typed text, and why: correct (TanStack Query vs
+     `useState`; say "ownership", not "location": the server owns the list, so the copy can go stale).
+  2. `<img onerror>` in the answer: partial (right: shown as plain text; missed the API that would
+     make it an attack, `dangerouslySetInnerHTML`, and the name XSS).
+  3. `useEffect` cleanup: correct (runs when the component leaves; without it timers pile up; add:
+     also runs before the effect re-runs when dependencies change).
+  4. Why `useQuery` for a POST: partial (right: a read, cacheable by key; missed the settings:
+     `enabled`, `staleTime: Infinity`, no refetch on focus/reconnect, `retry: shouldRetry`).
+  5. 404 without CORS headers, and reading the request ID: correct (browser withholds the response;
+     add: the UI then shows "could not reach the server" and retries once; the header is
+     `Access-Control-Expose-Headers`; the preflight is cached, the response headers are not).
+  Score: 3 correct, 2 partial. Re-drill: `dangerouslySetInnerHTML` / XSS; the `useAnswer` settings.

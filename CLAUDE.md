@@ -246,6 +246,15 @@ Auth, multi-user, rerankers, hybrid/BM25 search, conversation memory, streaming 
   Phase 5 five-question drill; Phase 4 re-drill items (TOPICS.md).
   **Next:** grade the JS exercises, then the Phase 5 drill, then Phase 6 (Cloud Run; decide rate limiter first).
 
+- **2026-10-10, session 9:** JS fundamentals exercises explained (user had no prior JS/TS; follow-up checks correct),
+  StrictMode and state management explained on request. Phase 5 drill: 3 correct, 2 partial (TOPICS.md).
+  INTERVIEW.md header, 90-second walkthrough and diagram now include the UI. **Phase 5 is complete** except the user's
+  own 3 React DevTools experiments (optional, by hand).
+  Re-drill backlog: `dangerouslySetInnerHTML`/XSS, `useAnswer` settings, the 4 JS exercises, Phase 4 items.
+  **Next:** Phase 6 (Cloud Run). Decisions needed from the user first: build the token-bucket rate limiter before a
+  public URL (recommended: yes, 15/min is the provider limit); hosted Postgres choice and cost; how the UI is hosted.
+  gcloud CLI is not installed in WSL yet; the user needs a GCP account with billing enabled.
+
 ## First session
 1. Save this brief to `CLAUDE.md`.
 2. Ask me, in one message: whether Docker (and which setup), uv, Node and gcloud are already installed in WSL; which LLM/embedding API keys I have; which standards PDFs I already have access to. Then verify with commands (`docker --version`, `uv --version`, `node -v`, `which python3`) instead of taking my word for it.
