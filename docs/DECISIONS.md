@@ -426,6 +426,33 @@ Format: **Decision** / Alternative rejected / Why. Only choices actually made go
   in the tree), `useReducer` (no state with several interdependent transitions), Redux (a global
   store for three values; and the server data it would hold is exactly what TanStack Query manages).
 
+## 2026-10-10: Rate limit on `POST /v1/query`: one in-memory token bucket, 6 burst, 12 per minute
+- Why: every question costs one embedding and one generation of a free-tier quota (15
+  generations/minute, 500/day). 12/minute leaves room for the server's own retries, which count too.
+- Token bucket: allows a short burst (6) but holds the long-run average. **Rejected:** fixed
+  window (a counter reset each minute lets 2x the limit through around the boundary);
+  **rejected:** sliding-window log (exact, but stores a timestamp per request; no benefit here).
+- One bucket for everyone, because the thing protected is one shared quota. Known cost: one
+  busy caller can use all tokens. Per-caller buckets need a caller identity; there is no auth,
+  and behind a proxy the client IP comes from a header a caller can influence.
+- In memory, per process. With N Cloud Run instances the real limit is N x 12/minute; phase 6
+  caps the service at one instance. A shared limit would need a shared store such as Redis.
+- The check is the first line of the handler: a 422 costs no token, a 429 costs no provider call.
+  Rejection is 429 with `Retry-After`; the UI shows "wait a few seconds" and does not retry.
+- No lock around the bucket: `take()` has no `await`, so nothing interleaves on the event loop.
+- Not limited: the daily quota (500/day). At 12/minute it is reachable in 42 minutes; then
+  questions fail with 502 until the provider's reset.
+
+## 2026-10-10: Deploy choices (phase 6, decided before building)
+- **Database: Neon free plan** (checked on neon.com/pricing, 2026-10-10: $0, no credit card, 1 GB
+  per project, pgvector supported, compute suspends after 5 minutes idle and resumes on connect).
+  **Rejected:** Supabase free (500 MB, project paused after 1 week of inactivity, so a portfolio
+  link would die); **rejected:** Cloud SQL (no free tier, billed while idle).
+  Not measured yet: the delay of the first query after Neon has suspended.
+- **UI: served by the API's own Cloud Run service** from the built static files. One URL, one
+  deploy, same origin so no CORS in production. **Rejected:** separate static hosting (a second
+  deploy and a cross-origin setup for no benefit at this size).
+
 ## Future work (explicitly out of scope)
 - Token-bucket rate limiter and LLM response cache on `/v1/query` (optional items, not built yet).
 - **User accounts and saved chats per user** (requested 2026-10-03; auth, multi-user and

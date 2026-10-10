@@ -148,6 +148,7 @@ See `DECISIONS.md`. Short form so far:
 - Free-tier limits shape everything: 1,000 embeddings/day, and for the LLM 500 requests/day and 15/minute. `/v1/query` retries twice on a busy provider, then returns 502. There is no rate limiter of our own yet.
 - Eval-proven weaknesses: an answer spread over two short clauses can lose its second half (q09); FDA section VI is chunked too coarsely (q15); table rows lose their column labels (q05).
 - Near-duplicate chunks can fill the context (the same requirement appears in NPR's body, its Appendix C matrix and NASA-STD's Table 1); there is no deduplication or reranking.
+- The rate limit is one in-memory bucket for all callers: no fairness between users, and it only holds with a single server instance. The daily quota (500 generations) is not limited at all.
 - No relevance floor yet: the LLM is called even when the best match is weak.
 - Latency was measured at low volume only (36 requests, max 6 at once); 99.7% of it is provider time, so it will move with the provider.
 - `citations` lists every passage given to the model, not only the ones it actually cited.
@@ -215,6 +216,16 @@ See `DECISIONS.md`. Short form so far:
   A: One place: the "still working… N s" counter starts a browser interval after the skeleton appears and clears it when the skeleton goes away. Without the cleanup the timer leaks. The callback uses `setSeconds(s => s + 1)`; `setSeconds(seconds + 1)` would be a stale closure stuck at 1. Data fetching does not use effects; TanStack Query does that.
 - Follow-up: Did lazy loading help?
   A: No, and I measured it: the panel is 0.7 kB gzipped and the initial bundle grew by 0.3 kB. Lazy loading pays for big chunks not needed on the first screen.
+
+**Rate limiting**
+- Q: How do you stop someone from burning your LLM quota?
+  A: A token bucket on `POST /v1/query`: 6 tokens, refilled at 12 per minute. Each question takes one; an empty bucket returns 429 with `Retry-After`, before any provider call. 12 because the provider allows 15 per minute and my own retries count against that.
+- Follow-up: Why a token bucket and not a counter per minute?
+  A: A fixed window lets a caller send the full limit at the end of one minute and again at the start of the next: twice the limit in a few seconds. The bucket allows a bounded burst and then enforces the average. It also needs only two numbers of state and no timer: it refills lazily when asked.
+- Follow-up: You deploy three instances. What happens to the limit?
+  A: Each process has its own bucket, so the real limit triples. I cap Cloud Run at one instance. To scale out I would move the bucket to a shared store such as Redis, with an atomic check-and-decrement.
+- Follow-up: One user sends 1000 requests a minute. Do the others starve?
+  A: With my single bucket, yes: it protects the quota, not fairness. The fix is a bucket per caller plus the global one, which needs a caller identity (an API key or login; an IP address is weak behind proxies). Beyond that, fair queuing: a queue per caller, served round-robin, so a heavy caller only delays their own requests.
 
 ## 9. Concept answers
 

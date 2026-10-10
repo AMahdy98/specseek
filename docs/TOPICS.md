@@ -16,7 +16,7 @@ Partial means some of the topic exists; the pointer says which part.
 | Error handling backend → frontend (LLM timeout) | 3, 5 | built (partial: timeout → retries → `ProviderError` → 502 envelope; UI in phase 5) | `app/llm.py:_post`, `tests/test_query.py:test_llm_timeout_becomes_a_502_error_envelope` |
 | Parameterized queries / SQL injection | 1 | built | `app/ingest/store.py` (every value is a `%s` parameter) |
 | CORS | 5 | drilled | `app/main.py` (CORSMiddleware, outermost), `app/config.py` (`CORS_ALLOWED_ORIGINS`), `tests/test_cors.py` |
-| Rate limiting, token bucket (opt) | 3 | — (optional; not built) | |
+| Rate limiting (token bucket) | 3 (built 2026-10-10) | built | `app/rate_limit.py` (`TokenBucket.take`), `routes.query`, `tests/test_rate_limit.py`; DECISIONS.md 2026-10-10 |
 | LLM response cache (opt) | 3 | — (optional; not built) | |
 | Observability: JSON logs, request ID, stage timing | 1, 3 | built | `app/logging_config.py`, `app/api/middleware.py`; `query_complete` (embed/search/generate ms) in `app/rag.py`, `ingest_complete` in `app/ingest/service.py` |
 | Performance: p50/p95, slow-endpoint checklist | 4 | built | `eval/load_test.py`, `docs/PERF.md` (measured p50 1.30 s / p95 2.05 s; checklist walked on real data) |

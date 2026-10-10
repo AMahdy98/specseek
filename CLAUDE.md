@@ -255,6 +255,16 @@ Auth, multi-user, rerankers, hybrid/BM25 search, conversation memory, streaming 
   public URL (recommended: yes, 15/min is the provider limit); hosted Postgres choice and cost; how the UI is hosted.
   gcloud CLI is not installed in WSL yet; the user needs a GCP account with billing enabled.
 
+- **2026-10-10, session 9 (cont.):** Token-bucket rate limiter built on `POST /v1/query` (`app/rate_limit.py`; 6 burst,
+  12/min via `QUERY_BURST` / `QUERY_RATE_PER_MINUTE`; 429 + `Retry-After`; `RateLimited` error; UI message). 161 backend
+  tests, 21 frontend tests. Phase 6 choices made by the user on Claude's recommendation: **Neon free plan** for Postgres,
+  **UI served from the API's Cloud Run service** (DECISIONS.md 2026-10-10).
+  **Waiting on the user:** (1) Neon account + project, connection string into `.env` as `NEON_DATABASE_URL` (never in chat);
+  (2) GCP project with billing; (3) gcloud CLI installed in WSL and `gcloud auth login`.
+  **Next (Phase 6):** concept briefing; serve the built UI from FastAPI (static files, production build in the Dockerfile);
+  copy the dev database to Neon (pg_dump/restore, no re-embedding); Artifact Registry + Cloud Run deploy with
+  max-instances 1 and the Gemini key in Secret Manager; measure cold start and Neon resume delay.
+
 ## First session
 1. Save this brief to `CLAUDE.md`.
 2. Ask me, in one message: whether Docker (and which setup), uv, Node and gcloud are already installed in WSL; which LLM/embedding API keys I have; which standards PDFs I already have access to. Then verify with commands (`docker --version`, `uv --version`, `node -v`, `which python3`) instead of taking my word for it.
