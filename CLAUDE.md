@@ -283,6 +283,15 @@ Auth, multi-user, rerankers, hybrid/BM25 search, conversation memory, streaming 
   finalize INTERVIEW.md, final whiteboard drill. The repo has no Git remote yet (GitHub push is the user's step;
   check history for secrets first). Re-drill backlog in TOPICS.md.
 
+- **2026-10-10, session 9 (Phase 7):** `README.md` written (what it does, eval + latency summary, Mermaid diagram, setup
+  steps for a stranger incl. the two-day free-tier ingest, develop commands, limitations incl. "not deployed", an
+  AI-assistance disclosure the user may keep or remove). INTERVIEW.md finalized (tests 166 + 21, query trace with rate
+  limit and deadline, decisions list, 5th bug story, limitations). Git history scanned for secrets: none found
+  (no key, no non-dev DB URL, `.env` never committed). No LICENSE file; no Git remote.
+  **Open:** final whiteboard drill (asked, awaiting the user's answer); user decides on LICENSE, the disclosure
+  paragraph, and pushing to GitHub. Re-drill backlog in TOPICS.md. After that the project plan is complete;
+  "mock interview" mode is available on request.
+
 ## First session
 1. Save this brief to `CLAUDE.md`.
 2. Ask me, in one message: whether Docker (and which setup), uv, Node and gcloud are already installed in WSL; which LLM/embedding API keys I have; which standards PDFs I already have access to. Then verify with commands (`docker --version`, `uv --version`, `node -v`, `which python3`) instead of taking my word for it.

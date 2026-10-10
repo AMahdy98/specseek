@@ -71,8 +71,9 @@ Every request, before and after the route (`app/api/middleware.py:RequestContext
 4. Always: one JSON access-log line with `request_id`, `method`, `path`, `status`, `duration_ms`.
 
 `POST /v1/query` with `{"question": "...", "strategy": "section_aware", "document_id": null}`:
-1. `routes.query`: Pydantic validates (question 3–1000 chars, known strategy, UUID) → 422 otherwise.
-2. `rag.answer_question` → `GeminiProvider.embed([question], kind="query")`: one HTTPS call, vector normalised to length 1. Fails: provider down/overloaded after 3 attempts, or quota → `ProviderError` → 502.
+1. `routes.query`: Pydantic validates (question 3–1000 chars, known strategy, UUID) → 422 otherwise. Then `limiter.take()` (token bucket: 6 burst, 12/min) → `RateLimited` → 429 with `Retry-After`, before anything is spent.
+   Steps 2–4 run under one 50 s deadline (`asyncio.timeout`); on expiry the in-flight call is cancelled → `ProviderError` → 502.
+2. `rag.answer_question` → `GeminiProvider.embed([question], kind="query")`: one HTTPS call, vector normalised to length 1. Each attempt times out after 15 s. Fails: provider down/overloaded after 3 attempts, or quota → `ProviderError` → 502.
 3. One pooled connection: `retrieval.document_exists` if a filter was given (missing → `NotFound` → 404), then `retrieval.search_chunks`: `ORDER BY embedding <=> query LIMIT 5` for that strategy. The connection is released before step 4.
 4. `prompt.build_prompt`: numbered passages with `Document | Clause | Heading | Page` headers, question last. `GeminiProvider.generate(SYSTEM_PROMPT, prompt)` at temperature 0. No passages → skip the LLM and return the refusal sentence. Fails: timeout/503 after 3 attempts, blocked or cut-off answer → `ProviderError` → 502.
 5. Response: `answer`, `refused` (exact-sentence match), `strategy`, and `citations` = the 5 passages with clause, heading, page, 300-char snippet and score. One log line: `embed_ms`, `search_ms`, `generate_ms`, `top_score`.
@@ -95,7 +96,7 @@ Every request, before and after the route (`app/api/middleware.py:RequestContext
 ## 4. Numbers to know cold
 | Number | Value |
 |---|---|
-| Tests | 118 (87 unit, 31 integration against a real Postgres test database) |
+| Tests | Backend 166 (130 unit, 36 against a real Postgres test database); frontend 21 (Vitest + React Testing Library) |
 | Chunk size / overlap | naive: 512 chars, no overlap. section_aware: one chunk per clause, max 3200 chars (≈800 tokens at 4 chars/token), 400-char overlap when a clause is split |
 | Embedding model + dimension | Gemini `gemini-embedding-001`, 768 dimensions (truncated from 3072), L2-normalised by us (raw norm measured 0.58) |
 | Embedding limits (free tier, measured) | 100 texts per request; about one batch per minute before HTTP 429; **1,000 texts per day per model** |
@@ -106,7 +107,7 @@ Every request, before and after the route (`app/api/middleware.py:RequestContext
 | DB pool | min 1 / max 10 connections, 2 s acquire timeout for health |
 | Top-k | 5, by cosine similarity (`<=>`), per chunking strategy |
 | Generation | `gemini-3.5-flash-lite`, temperature 0, max 2048 output tokens, prompt version v1. Free tier: 500 requests/day, 15/minute (`gemini-3.8-flash` was dropped: 20/day) |
-| Corpus size | 4 public documents, 225 pages → 956 naive chunks, 640 section-aware chunks (measured 2026-10-02 by running the chunkers; not yet in the DB) |
+| Corpus size | 4 public documents, 225 pages → 956 naive chunks, 640 section-aware chunks (all in the database since 2026-10-03) |
 | Per document (pages → naive / section-aware) | NASA-STD-8739.8B: 70 → 281 / 209 · NPR 7150.2D: 89 → 354 / 341 · FDA Premarket: 46 → 219 / 49 · FDA Off-The-Shelf: 20 → 102 / 41 |
 | Parse time | 134–357 ms per document on my machine; chunking under 4 ms |
 | Eval scores (my final grades, 2026-10-05, 20 questions, `gemini-3.5-flash-lite`) | section-aware: 14 correct, 2 partial, 2 wrong, 2 correctly refused · naive: 10 correct, 3 partial, 5 wrong, 2 correctly refused. Answerable only: 78% vs 56% (14 vs 10 of 18) |
@@ -119,12 +120,21 @@ Every request, before and after the route (`app/api/middleware.py:RequestContext
 | Docker image | 360 MB (three-stage build: Python deps, UI build with Node, slim runtime with neither uv nor Node) |
 
 ## 5. Decisions
-See `DECISIONS.md`. Short form so far:
-- Repo on WSL filesystem, not `/mnt/f` → I/O speed and inotify.
-- uv + lockfile, not pip + requirements.txt → reproducible installs.
-- Repository behind a Protocol → tests inject fakes, Postgres swaps in without touching routes.
-- Ruff `ASYNC` rules → catches blocking calls in `async def` statically.
-- Licensed PDFs never committed or served publicly → copyright.
+Full list with dates in `DECISIONS.md`. The ones most likely to be asked, each with the rejected alternative:
+- **pgvector in Postgres**, not a dedicated vector database → a few thousand vectors; text, metadata and vector in one row; plain SQL filters; one transaction for a document and its chunks.
+- **Hand-written pipeline**, not LangChain/LlamaIndex → I can explain and change every step.
+- **One chunk per clause** (max 3,200 chars, 400 overlap), not only fixed windows → standards are cited by clause. Both strategies stay in the code because the evaluation compares them.
+- **768-dimension embeddings**, not the model's full 3,072 → a quarter of the storage; vectors normalised by us.
+- **Exact refusal sentence and temperature 0**, not free-form refusals → refusals are detectable by code, and a graded answer can be reproduced.
+- **Raw parameterized SQL**, not an ORM → four tables' worth of queries, all visible; an ORM for a larger codebase.
+- **Domain errors that know nothing about HTTP**, mapped to statuses in one handler, not `HTTPException` in services → the evaluation script calls the same service code without HTTP.
+- **Idempotent ingest by SHA-256 of the file**, not a client idempotency key → the content is the identity; 201 when new, 200 on replay.
+- **Cursor (keyset) pagination**, not offset → stable under inserts, and no scan of skipped rows.
+- **`useQuery` for `POST /v1/query`**, not `useMutation` → it is a read: cacheable by key, cancellable; all automatic refetching switched off because each call spends quota.
+- **Token bucket** (6 burst, 12/min), not a fixed window → bounded burst, no double-limit at a window boundary.
+- **Layered timeouts** 15 s / 50 s / 60 s, not independent ones → each layer gives up before its caller.
+- **The API container serves the built UI**, not a second web server → one URL, same origin, no CORS in that mode.
+- **Not deployed** → no payment card for any cloud free tier; recorded rather than hidden.
 
 ## 6. Bugs (STAR)
 **The glued heading (2026-10-02).**
@@ -139,13 +149,22 @@ See `DECISIONS.md`. Short form so far:
 - *Root cause:* two limits share one status code. This 429 was the free tier's 1,000-texts-per-day quota, and its body said to retry in 16,464 s. My code clamped that to 60 s and kept retrying a request that could not succeed.
 - *Fix:* if the provider asks for a longer wait than our maximum backoff, fail immediately with the wait in the error message (now 0.8 s instead of 5 minutes). Because the write is one transaction after embedding, the failure left no partial data.
 
+**Two timeouts that did not know about each other (2026-10-09).**
+- *Situation:* the UI was finished and tested; fast provider failures showed the right message.
+- *What I saw:* nothing in use. Tracing the "LLM hangs" path on paper for this guide, the trace I had written could not be true.
+- *Root cause:* the server waited up to 60 s per provider attempt and made 3 attempts (about 3 minutes); the UI gave up after 60 s. On a real hang the user would get a client-side message with no request ID while the server kept working for nobody.
+- *Fix:* 15 s per interactive attempt and one 50 s deadline per question that cancels the in-flight call. Lesson: write the timeout budget end to end; each layer must be shorter than its caller. Not reproduced against a real hang; covered by a test with a provider that never answers.
+
 **The dev-only dependency (2026-10-02).** All tests passed locally, but the container crashed on start: `httpx` had been installed as a dev dependency and the image is built without those. Full write-up in BUGS.md.
 
 **Contents entries as clauses (2026-10-02).** 75 of NPR 7150.2D's 391 chunks were one-line contents entries like `P.1 Purpose`. Fixed by treating a title-like one-liner whose ID reappears later as contents text. Full write-up in BUGS.md.
 
 ## 7. Known limitations
 - Schema can only be created, not migrated.
-- Free-tier limits shape everything: 1,000 embeddings/day, and for the LLM 500 requests/day and 15/minute. `/v1/query` retries twice on a busy provider, then returns 502. There is no rate limiter of our own yet.
+- **Not deployed:** runs locally with Docker Compose only; the Cloud Run design is a plan (section 8, "Deployment").
+- **No authentication:** anyone who can reach it can ask and can trigger ingestion.
+- Free-tier limits shape everything: 1,000 embeddings/day, and for the LLM 500 requests/day and 15/minute. `/v1/query` makes 3 attempts on a busy provider, then returns 502.
+- The UI's answer cache is not cleared when a document is re-ingested or the prompt changes (30 minutes, or until reload).
 - Eval-proven weaknesses: an answer spread over two short clauses can lose its second half (q09); FDA section VI is chunked too coarsely (q15); table rows lose their column labels (q05).
 - Near-duplicate chunks can fill the context (the same requirement appears in NPR's body, its Appendix C matrix and NASA-STD's Table 1); there is no deduplication or reranking.
 - The rate limit is one in-memory bucket for all callers: no fairness between users, and it only holds with a single server instance. The daily quota (500 generations) is not limited at all.
