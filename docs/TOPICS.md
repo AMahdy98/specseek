@@ -174,3 +174,7 @@ Partial means some of the topic exists; the pointer says which part.
   at 1). 3. Sync / microtask / task order: not answered. 4. Lost this: not answered.
   All four explained in chat with C++ mappings (capture by reference, call-site this).
   Re-drill all four before the Phase 5 drill; StrictMode double render explained on request.
+- 2026-10-10, JS follow-up checks: 1. let in a loop gives each closure its own variable (0, 10):
+  correct. 2. Which value handleSubmit sees: correct on the value (the latest), the reason not
+  given (the function is re-created on every render, so it closes over that render's values; a
+  closure goes stale only when it is created once and kept, as in an effect with []).
