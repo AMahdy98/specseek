@@ -24,6 +24,8 @@ class Settings:
     generation_model: str
     # Browser origins (scheme://host:port) allowed to call the API from JavaScript.
     cors_allowed_origins: tuple[str, ...]
+    # Folder with the built UI (index.html + assets). None: the API serves no UI.
+    static_dir: Path | None
     # Token bucket on POST /v1/query: long-run average, and how many may arrive at once.
     query_rate_per_minute: float
     query_burst: int
@@ -45,6 +47,8 @@ def get_settings() -> Settings:
         cors_allowed_origins=parse_origins(
             os.environ.get("CORS_ALLOWED_ORIGINS", _DEFAULT_CORS_ORIGINS)
         ),
+        # Set in the Dockerfile. Unset in development: Vite serves the UI on its own port.
+        static_dir=Path(os.environ["STATIC_DIR"]) if os.environ.get("STATIC_DIR") else None,
         # The provider allows 15 generations/minute. 12 leaves room for the server's own
         # retries, which also count against that limit.
         query_rate_per_minute=float(os.environ.get("QUERY_RATE_PER_MINUTE", "12")),

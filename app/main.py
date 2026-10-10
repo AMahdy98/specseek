@@ -6,10 +6,12 @@ Run locally:  uv run --env-file .env uvicorn app.main:app --reload
 import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 import httpx
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from app.api.error_handlers import install_error_handlers
 from app.api.middleware import RequestContextMiddleware
@@ -80,3 +82,15 @@ app.state.query_limiter = TokenBucket(
     refill_per_second=get_settings().query_rate_per_minute / 60,
 )
 app.include_router(router, prefix="/v1")
+
+
+def mount_ui(app: FastAPI, directory: Path) -> None:
+    """Serve the built UI at `/`. Must be called after the API routes are registered:
+    routes are matched in order, so /v1/... is answered by the API and only what is left
+    falls through to the files. html=True makes `/` return index.html."""
+    app.mount("/", StaticFiles(directory=directory, html=True), name="ui")
+
+
+_static_dir = get_settings().static_dir
+if _static_dir is not None and _static_dir.is_dir():
+    mount_ui(app, _static_dir)

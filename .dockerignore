@@ -9,4 +9,7 @@ data
 eval
 docs
 tests
-frontend
+# The UI source is needed for the build stage; its local artefacts are not.
+frontend/node_modules
+frontend/dist
+frontend/.env.local

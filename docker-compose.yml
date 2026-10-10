@@ -1,6 +1,6 @@
 # Local development stack: Postgres 16 + pgvector, and the API.
 #   docker compose up -d db          # just the database (run the API with uv for --reload)
-#   docker compose up --build        # both, API at http://localhost:8000
+#   docker compose up --build        # both: UI at http://localhost:8000, API under /v1
 
 services:
   db:

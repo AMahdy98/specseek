@@ -17,7 +17,17 @@ COPY pyproject.toml uv.lock ./
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked --no-dev --no-install-project
 
-# ---- Stage 2: runtime — only the venv and the code, no uv, no build cache ----
+# ---- Stage 2: ui — compile the React app to static files (HTML, JS, CSS) ----
+FROM node:24-slim AS ui
+WORKDIR /ui
+# Same trick as above: manifests first, so `npm ci` is cached until dependencies change.
+COPY frontend/package.json frontend/package-lock.json ./
+RUN --mount=type=cache,target=/root/.npm npm ci
+COPY frontend/ ./
+# Empty API URL: the UI calls /v1/... on whatever host served the page (same origin).
+RUN VITE_API_URL= npm run build
+
+# ---- Stage 3: runtime — only the venv, the code and the built UI; no uv, no Node ----
 FROM python:3.12-slim AS runtime
 
 RUN useradd --create-home --uid 1000 app
@@ -26,9 +36,11 @@ WORKDIR /app
 # Same path as in the builder: venv scripts contain absolute paths.
 COPY --from=builder /app/.venv /app/.venv
 COPY app ./app
+COPY --from=ui /ui/dist ./static
 
 ENV PATH="/app/.venv/bin:$PATH" \
-    PYTHONUNBUFFERED=1
+    PYTHONUNBUFFERED=1 \
+    STATIC_DIR=/app/static
 
 USER app
 EXPOSE 8080
