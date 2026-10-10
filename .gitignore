@@ -19,6 +19,10 @@ data/local/
 # Eval runs (raw answers, grading sheet, grades) ARE committed: they are the evidence
 # behind docs/EVAL.md.
 
+# Personal study notes (kept locally, not part of the project documentation)
+docs/INTERVIEW.md
+docs/TOPICS.md
+
 # Frontend
 node_modules/
 frontend/dist/

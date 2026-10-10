@@ -292,6 +292,13 @@ Auth, multi-user, rerankers, hybrid/BM25 search, conversation memory, streaming 
   paragraph, and pushing to GitHub. Re-drill backlog in TOPICS.md. After that the project plan is complete;
   "mock interview" mode is available on request.
 
+- **2026-10-10, session 9 (repo public):** Repo is public at https://github.com/AMahdy98/specseek. User chose to frame it
+  as a learning project (README says so, incl. AI assistance) and keep `CLAUDE.md` public. `docs/INTERVIEW.md` and
+  `docs/TOPICS.md` are now **untracked and gitignored** (still on disk, still maintained by Claude; they remain in
+  older commits; no history rewrite). Their factual content lives in the new public `docs/ARCHITECTURE.md`:
+  **keep ARCHITECTURE.md in sync with the code** (numbers, traces, limitations) from now on.
+  **Open:** final whiteboard drill (asked, not answered); LICENSE not chosen. Re-drill backlog in TOPICS.md.
+
 ## First session
 1. Save this brief to `CLAUDE.md`.
 2. Ask me, in one message: whether Docker (and which setup), uv, Node and gcloud are already installed in WSL; which LLM/embedding API keys I have; which standards PDFs I already have access to. Then verify with commands (`docker --version`, `uv --version`, `node -v`, `which python3`) instead of taking my word for it.
