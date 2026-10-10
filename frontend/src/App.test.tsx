@@ -140,6 +140,18 @@ describe('App', () => {
     expect(queries).toHaveLength(1)
   })
 
+  it('tells the user to wait when the rate limit is hit, without retrying', async () => {
+    const queries = stubApi(() =>
+      json({ error: { code: 'rate_limited', message: 'Too many', request_id: 'req-7' } }, 429),
+    )
+    const user = renderApp()
+
+    await ask(user, 'Who maintains the software plan?')
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Wait a few seconds')
+    expect(queries).toHaveLength(1)
+  })
+
   it('renders HTML in the model output as plain text', async () => {
     const hostile = 'See <img src=x onerror="window.pwned = true"> and <b>bold</b>.'
     stubApi(() => json({ ...ANSWER, answer: hostile }))

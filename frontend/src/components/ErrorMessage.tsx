@@ -5,6 +5,7 @@ import { ApiError } from '../api'
 const ADVICE: Record<string, string> = {
   provider_error: 'The language model is unavailable right now. Try again in a minute.',
   timeout: 'The server took too long to answer. Try again.',
+  rate_limited: 'Too many questions are being asked right now. Wait a few seconds and try again.',
   network_error: 'Could not reach the server. Check that the API is running.',
   validation_error: 'The question was rejected. It must be between 3 and 1000 characters.',
   not_found: 'The selected document no longer exists. Pick another one.',
