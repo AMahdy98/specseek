@@ -150,7 +150,7 @@ app/            FastAPI service
 frontend/       React + TypeScript UI
 eval/           questions, runner, graded runs, latency script and samples
 tests/          backend tests
-docs/           DECISIONS, EVAL, PERF, BUGS, and study notes
+docs/           ARCHITECTURE, DECISIONS, EVAL, PERF, BUGS
 data/public/    the four source PDFs
 ```
 
@@ -171,6 +171,8 @@ Every non-obvious choice is recorded with the alternative that was rejected in
   because that would multiply quota use.
 
 The bugs found along the way, with root causes, are in [docs/BUGS.md](docs/BUGS.md).
+Request traces for every endpoint and the measured numbers are in
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## Limitations
 
@@ -199,3 +201,9 @@ Licensed standards were deliberately kept out of the repository.
 | NPR 7150.2D, NASA Software Engineering Requirements | 89 |
 | FDA, Content of Premarket Submissions for Device Software Functions (2023) | 46 |
 | FDA, Off-The-Shelf Software Use in Medical Devices (2023) | 20 |
+
+## About this project
+
+This is a learning project. I am a software engineer with a background in real-time C++ and Python
+systems, and I built SpecSeek to learn fullstack and LLM application development: web APIs, Docker,
+React, retrieval and evaluation.

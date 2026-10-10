@@ -82,7 +82,7 @@ Real bugs only. Template:
 
 ## 2026-10-09: The UI gave up on a hung provider before the server did
 - **Symptom:** none observed in use. Found by tracing the "LLM timeout" path on paper for the
-  interview guide, after the UI was built: the trace I had written could not be true.
+  architecture notes, after the UI was built: the trace I had written could not be true.
 - **Root cause:** two timeouts chosen independently. The server waited up to 60 s per provider
   attempt (the shared HTTP client's default, sized for embedding batches of 100 texts) and made
   3 attempts for a question: about 3 minutes if the provider hangs. The UI's request timeout was

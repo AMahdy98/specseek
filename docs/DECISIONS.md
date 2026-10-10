@@ -462,9 +462,9 @@ Format: **Decision** / Alternative rejected / Why. Only choices actually made go
   service): still the plan if it is hosted later, but **not built and not tested**.
 - A Neon project was created by the user and is unused. Nothing was copied to it.
 - Consequence for the CV and interviews: say "containerized, runs with Docker Compose; not
-  deployed", and explain the Cloud Run design from INTERVIEW.md as a plan, not as experience.
-- If the company adopts it as an internal tool, the open points are listed in INTERVIEW.md
-  ("Deployment: studied, not done").
+  deployed", and explain the hosting design in ARCHITECTURE.md as a plan, not as experience.
+- If the company adopts it as an internal tool, the open points are listed in ARCHITECTURE.md
+  ("Hosting plan (not done)").
 
 ## 2026-10-10: The API container also serves the built UI
 - A third Dockerfile stage (`node:24-slim`) runs `npm ci` + `npm run build`; the runtime stage
@@ -478,6 +478,15 @@ Format: **Decision** / Alternative rejected / Why. Only choices actually made go
 - Development is unchanged: Vite on :5173 with hot reload, API on :8000, CORS between them.
 - Not done: cache headers for the hashed asset files; no client-side routes, so no fallback to
   `index.html` for unknown paths (they are 404).
+
+## 2026-10-10: Public repository: study notes are not tracked
+- The README states that this is a learning project. `CLAUDE.md`, the working agreement with
+  the AI coding assistant that wrote the code, stays in the repository.
+- `docs/INTERVIEW.md` (my interview preparation) and `docs/TOPICS.md` (my study log) are no
+  longer tracked; they are personal notes, not project documentation. They remain in earlier
+  commits. Their factual content (request traces, numbers, limitations, hosting plan) moved to
+  `docs/ARCHITECTURE.md`.
+- **Rejected:** rewriting the published history to erase them (a force-push for no real gain).
 
 ## Future work (explicitly out of scope)
 - Token-bucket rate limiter and LLM response cache on `/v1/query` (optional items, not built yet).
