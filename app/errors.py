@@ -36,3 +36,13 @@ class ProviderError(SpecSeekError):
     """The embedding/LLM provider failed or timed out."""
 
     code = "provider_error"
+
+
+class RateLimited(SpecSeekError):
+    """Too many requests right now; the caller should wait and try again."""
+
+    code = "rate_limited"
+
+    def __init__(self, message: str, retry_after_seconds: float) -> None:
+        super().__init__(message)
+        self.retry_after_seconds = retry_after_seconds

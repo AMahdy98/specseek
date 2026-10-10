@@ -5,6 +5,7 @@ needs exactly one error-parsing code path.
 """
 
 import logging
+import math
 
 from fastapi import FastAPI, Request
 from fastapi.encoders import jsonable_encoder
@@ -12,7 +13,14 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from app.errors import IngestError, InvalidCursor, NotFound, ProviderError, SpecSeekError
+from app.errors import (
+    IngestError,
+    InvalidCursor,
+    NotFound,
+    ProviderError,
+    RateLimited,
+    SpecSeekError,
+)
 from app.logging_config import request_id_var
 
 logger = logging.getLogger("specseek.errors")
@@ -23,6 +31,7 @@ _STATUS_BY_ERROR: dict[type[SpecSeekError], int] = {
     NotFound: 404,
     InvalidCursor: 422,
     IngestError: 422,  # the client's file is the problem
+    RateLimited: 429,  # "Too Many Requests"
     ProviderError: 502,  # an upstream service we depend on failed ("Bad Gateway")
     SpecSeekError: 500,
 }
@@ -54,7 +63,14 @@ async def handle_specseek_error(request: Request, exc: SpecSeekError) -> JSONRes
     # 5xx = our side failed: log as error. 4xx = the caller's mistake: a warning is enough.
     log = logger.error if status_code >= 500 else logger.warning
     log("domain_error", extra={"code": exc.code, "detail": exc.message, "status": status_code})
-    return JSONResponse(status_code=status_code, content=_error_body(exc.code, exc.message))
+    headers = None
+    if isinstance(exc, RateLimited):
+        # The standard header for "wait this many seconds"; whole seconds, rounded up so a
+        # client that obeys it is never early.
+        headers = {"Retry-After": str(max(1, math.ceil(exc.retry_after_seconds)))}
+    return JSONResponse(
+        status_code=status_code, content=_error_body(exc.code, exc.message), headers=headers
+    )
 
 
 async def handle_validation_error(request: Request, exc: RequestValidationError) -> JSONResponse:

@@ -19,6 +19,7 @@ from app.db import apply_schema, open_pool
 from app.llm import GeminiProvider
 from app.logging_config import configure_logging
 from app.models import ErrorResponse
+from app.rate_limit import TokenBucket
 from app.repository import PostgresDocumentRepository
 
 # At import time: uvicorn has already set up its own loggers by the time it imports
@@ -73,4 +74,9 @@ app.add_middleware(
     max_age=600,  # the browser may cache a preflight answer for 10 minutes
 )
 install_error_handlers(app)
+# Created here, not in the lifespan: it needs no I/O, and it is per process by nature.
+app.state.query_limiter = TokenBucket(
+    capacity=get_settings().query_burst,
+    refill_per_second=get_settings().query_rate_per_minute / 60,
+)
 app.include_router(router, prefix="/v1")

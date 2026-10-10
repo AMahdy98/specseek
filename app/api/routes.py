@@ -23,6 +23,7 @@ from app.models import (
     QueryResponse,
 )
 from app.rag import answer_question
+from app.rate_limit import TokenBucket
 from app.repository import DocumentRepository, get_repository
 
 router = APIRouter()
@@ -36,6 +37,10 @@ def get_provider(request: Request) -> Provider:
     return request.app.state.provider
 
 
+def get_query_limiter(request: Request) -> TokenBucket:
+    return request.app.state.query_limiter
+
+
 async def database_is_up(request: Request) -> bool:
     """Dependency: can we reach Postgres right now? Overridden in unit tests."""
     return await ping(request.app.state.pool)
@@ -47,6 +52,7 @@ DbUpDep = Annotated[bool, Depends(database_is_up)]
 PoolDep = Annotated[AsyncConnectionPool, Depends(get_pool)]
 ProviderDep = Annotated[Provider, Depends(get_provider)]
 SettingsDep = Annotated[Settings, Depends(get_settings)]
+LimiterDep = Annotated[TokenBucket, Depends(get_query_limiter)]
 
 
 @router.get(
@@ -112,13 +118,21 @@ SNIPPET_CHARS = 300
     response_model=QueryResponse,
     responses={
         404: {"model": ErrorResponse, "description": "document_id does not exist"},
+        429: {"model": ErrorResponse, "description": "Rate limit reached; see Retry-After"},
         502: {"model": ErrorResponse, "description": "Embedding or LLM provider failed"},
     },
 )
 async def query(
-    body: QueryRequest, response: Response, pool: PoolDep, provider: ProviderDep
+    body: QueryRequest,
+    response: Response,
+    pool: PoolDep,
+    provider: ProviderDep,
+    limiter: LimiterDep,
 ) -> QueryResponse:
     """Answer a question from the ingested documents, with the passages used as sources."""
+    # First line of the handler: an invalid request was already rejected with 422 and costs
+    # no token; a rejected one (429) stops here, before any provider call is paid for.
+    limiter.take()
     result = await answer_question(
         body.question, pool, provider, strategy=body.strategy, document_id=body.document_id
     )

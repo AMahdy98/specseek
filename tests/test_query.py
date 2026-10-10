@@ -7,11 +7,12 @@ import psycopg
 import pytest
 from pgvector.psycopg import register_vector_async
 
-from app.api.routes import get_provider
+from app.api.routes import get_provider, get_query_limiter
 from app.errors import ProviderError
 from app.main import app
 from app.prompt import REFUSAL, SYSTEM_PROMPT
 from app.rag import QUERY_DEADLINE_SECONDS, answer_question
+from app.rate_limit import TokenBucket
 from tests.seeding import add_chunk, add_document, axis
 
 
@@ -259,6 +260,39 @@ async def test_a_hung_provider_is_cut_off_at_the_deadline_and_reported_as_502(ap
         monkey.undo()
     assert resp.status_code == 502
     assert resp.json()["error"]["code"] == "provider_error"
+
+
+async def test_requests_beyond_the_rate_limit_get_429_and_never_reach_the_provider(api, db):
+    client, llm = api
+    await _seed(db)
+    bucket = TokenBucket(capacity=2, refill_per_second=12 / 60, clock=lambda: 0.0)  # frozen time
+    app.dependency_overrides[get_query_limiter] = lambda: bucket
+    question = {"question": "Who assesses options?"}
+
+    statuses = [(await client.post("/v1/query", json=question)).status_code for _ in range(2)]
+    rejected = await client.post("/v1/query", json=question, headers={"X-Request-ID": "r-1"})
+
+    assert statuses == [200, 200]
+    assert rejected.status_code == 429
+    assert rejected.headers["Retry-After"] == "5"  # 12 per minute = one token every 5 s
+    assert rejected.json()["error"] == {
+        "code": "rate_limited",
+        "message": "Too many questions right now; try again shortly",
+        "request_id": "r-1",
+    }
+    assert len(llm.embed_calls) == 2  # the third request cost nothing
+
+
+async def test_an_invalid_request_does_not_use_up_a_token(api, db):
+    client, _ = api
+    await _seed(db)
+    bucket = TokenBucket(capacity=1, refill_per_second=12 / 60, clock=lambda: 0.0)
+    app.dependency_overrides[get_query_limiter] = lambda: bucket
+
+    invalid = await client.post("/v1/query", json={"question": "x"})
+    valid = await client.post("/v1/query", json={"question": "Who assesses options?"})
+
+    assert (invalid.status_code, valid.status_code) == (422, 200)
 
 
 def test_the_server_deadline_is_below_the_ui_timeout():

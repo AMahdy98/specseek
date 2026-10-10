@@ -23,7 +23,12 @@ from app.api.routes import database_is_up  # noqa: E402
 from app.db import apply_schema  # noqa: E402
 from app.main import app  # noqa: E402
 from app.models import DocumentPage, DocumentSummary  # noqa: E402
+from app.rate_limit import TokenBucket  # noqa: E402
 from app.repository import get_repository  # noqa: E402
+
+# The real limiter (6 at once, 12 per minute) would reject most of the test suite.
+# Tests of the limit itself override `get_query_limiter` with a small bucket.
+app.state.query_limiter = TokenBucket(capacity=100_000, refill_per_second=100_000)
 
 
 @pytest.fixture

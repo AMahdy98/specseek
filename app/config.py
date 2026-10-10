@@ -24,6 +24,9 @@ class Settings:
     generation_model: str
     # Browser origins (scheme://host:port) allowed to call the API from JavaScript.
     cors_allowed_origins: tuple[str, ...]
+    # Token bucket on POST /v1/query: long-run average, and how many may arrive at once.
+    query_rate_per_minute: float
+    query_burst: int
     # repr=False: the key must never show up in a log line or a stack trace.
     gemini_api_key: str = field(repr=False)
 
@@ -42,6 +45,10 @@ def get_settings() -> Settings:
         cors_allowed_origins=parse_origins(
             os.environ.get("CORS_ALLOWED_ORIGINS", _DEFAULT_CORS_ORIGINS)
         ),
+        # The provider allows 15 generations/minute. 12 leaves room for the server's own
+        # retries, which also count against that limit.
+        query_rate_per_minute=float(os.environ.get("QUERY_RATE_PER_MINUTE", "12")),
+        query_burst=int(os.environ.get("QUERY_BURST", "6")),
         gemini_api_key=os.environ.get("GEMINI_API_KEY", ""),
     )
 
