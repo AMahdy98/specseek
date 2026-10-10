@@ -191,3 +191,9 @@ Partial means some of the topic exists; the pointer says which part.
      add: the UI then shows "could not reach the server" and retries once; the header is
      `Access-Control-Expose-Headers`; the preflight is cached, the response headers are not).
   Score: 3 correct, 2 partial. Re-drill: `dangerouslySetInnerHTML` / XSS; the `useAnswer` settings.
+- 2026-10-10, rate limiter check questions:
+  1. 10 at once against 6 burst / 12 per minute: correct (6 answered, next token after 5 s).
+  2. Why 12 when the provider allows 15, and what is unprotected: correct (retries count; daily quota).
+  3. Three instances: correct on the burst (18) and on capping to one instance; add: the rate also
+     triples (36/min), and a shared store works for any number of instances if the check-and-take
+     is atomic (one UPDATE ... WHERE tokens >= 1, or Redis).
