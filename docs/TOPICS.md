@@ -197,3 +197,12 @@ Partial means some of the topic exists; the pointer says which part.
   3. Three instances: correct on the burst (18) and on capping to one instance; add: the rate also
      triples (36/min), and a shared store works for any number of instances if the check-and-take
      is atomic (one UPDATE ... WHERE tokens >= 1, or Redis).
+- 2026-10-10, deployment (study-only) check questions:
+  1. Scale to zero in the morning: correct (cold-start latency; minimum of one instance; add: that
+     costs money all day, and a sleeping database adds its own wake-up).
+  2. SIGTERM: partial (right: stops accepting new requests; missed: in-flight requests are
+     finished, then the lifespan closes the HTTP client and the pool, then exit. If ignored: after
+     about 10 s the platform sends SIGKILL and in-flight requests are cut off mid-response, they
+     do not "time out").
+  3. Secret vs env var: correct (add: rotation without a rebuild, and an access log).
+

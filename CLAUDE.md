@@ -275,6 +275,14 @@ Auth, multi-user, rerankers, hybrid/BM25 search, conversation memory, streaming 
   eval summary), finalize INTERVIEW.md, final whiteboard drill. Optional before the README: serve the built UI from the
   API container so `docker compose up` gives one URL (offered, not built). Re-drill backlog in TOPICS.md.
 
+- **2026-10-10, session 9 (UI in the image):** The API container now serves the built UI: third Dockerfile stage (Node build),
+  `mount_ui` in `app/main.py`, `STATIC_DIR`; `docker compose up --build` → whole app at http://localhost:8000 (verified in
+  the browser with a real question). Image 360 MB. 166 backend tests, 21 frontend tests. Deployment check questions:
+  2 correct, 1 partial (SIGTERM draining; TOPICS.md). `PORT` was already honoured by the Dockerfile.
+  **Next:** Phase 7: README (Mermaid diagram, setup steps a stranger can follow, eval summary, honest "not deployed"),
+  finalize INTERVIEW.md, final whiteboard drill. The repo has no Git remote yet (GitHub push is the user's step;
+  check history for secrets first). Re-drill backlog in TOPICS.md.
+
 ## First session
 1. Save this brief to `CLAUDE.md`.
 2. Ask me, in one message: whether Docker (and which setup), uv, Node and gcloud are already installed in WSL; which LLM/embedding API keys I have; which standards PDFs I already have access to. Then verify with commands (`docker --version`, `uv --version`, `node -v`, `which python3`) instead of taking my word for it.

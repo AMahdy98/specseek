@@ -116,7 +116,7 @@ Every request, before and after the route (`app/api/middleware.py:RequestContext
 | Latency under concurrency | 6 simultaneous requests: p50 1.69 s, all done within 2.04 s (sequentially they would take about 8 s) |
 | Prompt size (from the eval run) | retrieved context per question: naive always 2,560 chars; section-aware median 3,626, max 13,792 |
 | Cost per query | money: zero on the free tier, not measured for paid. Quota: 1 embedding (1,000/day) + 1 generation (500/day, 15/min). Roughly 1,200 tokens in, 100 out for a median section-aware query (estimated at 4 chars/token) |
-| Docker image size | 371 MB (`docker image ls`, 2026-10-02, after adding PyMuPDF and numpy via pgvector). Was 274 MB before the ingestion dependencies |
+| Docker image | 360 MB (three-stage build: Python deps, UI build with Node, slim runtime with neither uv nor Node) |
 
 ## 5. Decisions
 See `DECISIONS.md`. Short form so far:
@@ -232,11 +232,11 @@ SpecSeek is not deployed (no payment card for any cloud free tier; DECISIONS.md 
 the design I would follow, and what each part means. Say it as a plan.
 
 - Q: How would you deploy it?
-  A: Build the image, push it to Artifact Registry, run it on Cloud Run with max instances 1. Postgres on a hosted service with pgvector (Neon's free plan, or Cloud SQL if the company pays). The Gemini key and database URL come from Secret Manager as environment variables. The built React files are served by the same container, so one URL and no CORS in production.
+  A: Build the image, push it to Artifact Registry, run it on Cloud Run with max instances 1. Postgres on a hosted service with pgvector (Neon's free plan, or Cloud SQL if the company pays). The Gemini key and database URL come from Secret Manager as environment variables. The built React files are served by the same container (this part is built: `docker compose up` already works that way), so one URL and no CORS in production.
 - Follow-up: What is Cloud Run, and what does "scale to zero" cost you?
   A: It runs a container per request load and bills only while requests are handled. With no traffic it runs zero instances, so the next request waits for a cold start: start the container, import the app, apply the schema check, open the database pool. If the database also sleeps (Neon suspends after 5 idle minutes), that wake-up is added. The fix is a minimum of one instance, which costs money all the time.
 - Follow-up: What must a container do to run there?
-  A: Listen on the port given in the `PORT` variable; keep no state on local disk (it is temporary and per instance); take config from environment variables; handle SIGTERM by finishing in-flight requests within the grace period (about 10 s) before it is killed. SpecSeek already does the last three: config is env-only, the lifespan closes the pool on shutdown, and the only local files are read-only PDFs.
+  A: Listen on the port given in the `PORT` variable; keep no state on local disk (it is temporary and per instance); take config from environment variables; handle SIGTERM by finishing in-flight requests within the grace period (about 10 s) before it is killed. SpecSeek already does all four: the Dockerfile's command reads `${PORT:-8080}`, config is env-only, the lifespan closes the pool on shutdown, and the only local files are read-only PDFs and the built UI.
 - Follow-up: What in SpecSeek breaks or changes when it is hosted?
   A: (1) The in-memory rate limiter is per instance: keep max instances at 1 or move it to a shared store. (2) The request timeout: Cloud Run's default is 5 minutes, my question deadline is 50 s, so queries fit; ingesting a large PDF is the risk (it took minutes on the free embedding quota) and would become a background job. (3) Ingest reads PDFs from a local folder: on a hosted service they would be uploaded to Cloud Storage, ideally by a signed URL so the file goes straight from the browser to the bucket and never through my API. (4) The database pool: 10 connections per instance times the number of instances must stay under the database's connection limit.
 - Follow-up: Env var or secret?

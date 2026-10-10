@@ -466,6 +466,19 @@ Format: **Decision** / Alternative rejected / Why. Only choices actually made go
 - If the company adopts it as an internal tool, the open points are listed in INTERVIEW.md
   ("Deployment: studied, not done").
 
+## 2026-10-10: The API container also serves the built UI
+- A third Dockerfile stage (`node:24-slim`) runs `npm ci` + `npm run build`; the runtime stage
+  copies only the resulting static files to `/app/static`. FastAPI mounts them at `/` after the
+  `/v1` routes (`mount_ui` in `app/main.py`), only when `STATIC_DIR` is set (the image sets it).
+- Result: `docker compose up --build` gives the whole app at http://localhost:8000 with no Node
+  on the host. Same origin, so the UI calls `/v1/...` relatively (`VITE_API_URL=` at build) and
+  CORS is not involved. Image: 360 MB (Node is not in the final image).
+- **Rejected:** a separate nginx container for the UI (a second service and a proxy config for
+  five files); **rejected:** committing the built files (generated output in git goes stale).
+- Development is unchanged: Vite on :5173 with hot reload, API on :8000, CORS between them.
+- Not done: cache headers for the hashed asset files; no client-side routes, so no fallback to
+  `index.html` for unknown paths (they are 404).
+
 ## Future work (explicitly out of scope)
 - Token-bucket rate limiter and LLM response cache on `/v1/query` (optional items, not built yet).
 - **User accounts and saved chats per user** (requested 2026-10-03; auth, multi-user and
