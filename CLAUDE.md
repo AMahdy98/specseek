@@ -299,6 +299,13 @@ Auth, multi-user, rerankers, hybrid/BM25 search, conversation memory, streaming 
   **keep ARCHITECTURE.md in sync with the code** (numbers, traces, limitations) from now on.
   **Open:** final whiteboard drill (asked, not answered); LICENSE not chosen. Re-drill backlog in TOPICS.md.
 
+- **2026-10-11, session 10:** Questions answered: LangChain (not needed; would replace 2–3 small files, not the
+  chunker or the service; stays on the do-not-build list), and using SpecSeek for code documentation. Recorded under
+  Future work in DECISIONS.md at the user's request: code docs as a corpus (per-function chunks, hybrid search, new
+  eval) and an expanded entry for user auth + saved chat history as a chatbot (build order, chat UI, risks). Nothing built.
+  **Open:** final whiteboard drill (asked, not answered); LICENSE not chosen; whether the README's "About this project"
+  should mention AI assistance (user removed that paragraph; CLAUDE.md is public and says it). Re-drill backlog in TOPICS.md.
+
 ## First session
 1. Save this brief to `CLAUDE.md`.
 2. Ask me, in one message: whether Docker (and which setup), uv, Node and gcloud are already installed in WSL; which LLM/embedding API keys I have; which standards PDFs I already have access to. Then verify with commands (`docker --version`, `uv --version`, `node -v`, `which python3`) instead of taking my word for it.

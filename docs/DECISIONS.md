@@ -489,9 +489,10 @@ Format: **Decision** / Alternative rejected / Why. Only choices actually made go
 - **Rejected:** rewriting the published history to erase them (a force-push for no real gain).
 
 ## Future work (explicitly out of scope)
-- Token-bucket rate limiter and LLM response cache on `/v1/query` (optional items, not built yet).
-- **User accounts and saved chats per user** (requested 2026-10-03; auth, multi-user and
-  conversation memory are on the do-not-build list, so not built). If SpecSeek needed it, what
+- LLM response cache on `/v1/query`, keyed by normalized question + document set + prompt version,
+  invalidated on re-ingest (optional item, not built; the rate limiter was built on 2026-10-10).
+- **User accounts and saved chats per user, as a chatbot** (requested 2026-10-03 and again
+  2026-10-11; auth, multi-user and conversation memory are on the do-not-build list, so not built). If SpecSeek needed it, what
   would change and where:
   - *Authentication:* don't store passwords. Delegate sign-in to an identity provider over
     OAuth2/OIDC (e.g. Google sign-in, or Firebase Auth / Identity Platform on GCP). The API verifies
@@ -510,7 +511,41 @@ Format: **Decision** / Alternative rejected / Why. Only choices actually made go
     into a standalone one before retrieval, and the eval has to cover multi-turn cases.
   - *Also affected:* the rate limiter becomes per-user; logs gain a user ID (and privacy rules for
     stored questions); the frontend needs a login flow, token handling and CORS with credentials.
+  - *Chat interface:* the UI becomes a message list per conversation with a sidebar of past
+    conversations. With TanStack Query, sending a question becomes a mutation that appends to the
+    conversation's cached message list; the conversation list and each conversation are queries.
+    Streaming the answer (also on the do-not-build list) is what makes a chat feel responsive.
+  - *Order to build it in:* (1) sign-in and `get_current_user`; (2) store and list conversations
+    (history only, each question still answered on its own); (3) follow-up questions with query
+    rewriting, behind its own multi-turn evaluation. Step 2 alone already gives "chat history".
+  - *New risks:* stored questions are personal data (retention, deletion on request); a stored
+    answer can outlive the document version it was based on, so each message should keep the
+    document IDs and prompt version it used.
   - Natural home: the next project (TriageBot), which already plans Firestore/Firebase.
+- **Code documentation as a corpus** (asked 2026-10-11: find a function's description and
+  examples; find the function needed for some logic). The pipeline shape carries over; three
+  parts are specific to standards and would change:
+  - *Input:* loaders for Markdown/HTML, and for source files a parser that extracts each
+    function's name, signature, description and example (Python's `ast`; tree-sitter for C++).
+  - *Chunking:* one chunk per function or class, as a third strategy next to `naive` and
+    `section_aware`, so the evaluation harness can compare it. Metadata: symbol name, file path,
+    line, signature, language, in place of clause ID and page.
+  - *Search:* embeddings are weak at exact identifiers (`parse_pdf` vs `parse_pdfs`). Add an
+    exact/keyword match on the symbol name next to the vector search and combine both (hybrid
+    search; on the do-not-build list for SpecSeek, which is the main reason this is future work).
+    In Postgres: an index on the name column plus built-in full-text search, no new database.
+  - *Embedding:* the provider has a code-retrieval task type; untested, its effect must be measured.
+  - *Prompt:* give the signature and an example, cite file and symbol, quote signatures exactly,
+    refuse when the function is not in the retrieved text. The main failure to guard against is
+    an invented function or parameter.
+  - *UI:* code blocks, through a markdown renderer that builds React elements (never raw HTML).
+  - *Updates:* code changes constantly. Re-ingest per changed file (the content hash already
+    detects change) and replace that file's old chunks; today a changed file becomes a new document.
+  - *Evaluation:* questions of the form "which function does X" with the expected symbol;
+    "expected symbol in the top 5" can be scored automatically.
+  - *Unchanged:* API, errors, logging, rate limit, timeouts, provider interface, pgvector storage,
+    evaluation runner, UI shell.
+  - *Caution:* for company code, source and questions would be sent to the LLM provider.
 - Asynchronous ingestion: `202 Accepted`, a queue and a worker (see the synchronous-ingest decision).
 - Compare `gemini-embedding-2` (available on the same key) against `gemini-embedding-001`.
   Changing the embedding model means re-embedding every chunk: vectors from two models are not comparable.
